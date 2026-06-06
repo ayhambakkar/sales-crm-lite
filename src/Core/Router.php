@@ -98,13 +98,17 @@ class Router
     }
 
     /**
-     * Instantiate the controller and call the action with URL params.
+     * Run middleware stack for a matched route, then dispatch to the controller.
      *
      * @param  array<string, mixed> $route
      * @param  array<int, string>   $params
      */
     private function handle(array $route, array $params): void
     {
+        foreach ($route['middleware'] as $tag) {
+            $this->runMiddleware($tag);
+        }
+
         $class = 'App\\Controllers\\' . $route['controller'];
 
         if (! class_exists($class)) {
@@ -121,6 +125,30 @@ class Router
         }
 
         $controller->$action(...$params);
+    }
+
+    /**
+     * Map a middleware tag to its handler class and invoke it.
+     * Unknown tags are silently ignored to avoid breaking valid routes.
+     */
+    private function runMiddleware(string $tag): void
+    {
+        match ($tag) {
+            'auth'  => \App\Middleware\AuthMiddleware::handle(),
+            'csrf'  => \App\Middleware\CsrfMiddleware::handle(),
+            'admin' => $this->requireAdmin(),
+            default => null,
+        };
+    }
+
+    private function requireAdmin(): void
+    {
+        if (! \App\Core\Auth::isAdmin()) {
+            http_response_code(403);
+            $view = APP_ROOT . '/src/Views/errors/403.php';
+            file_exists($view) ? include $view : print('403 — Forbidden');
+            exit();
+        }
     }
 
     private function notFound(): void

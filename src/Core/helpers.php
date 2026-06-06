@@ -7,8 +7,6 @@ declare(strict_types=1);
  *
  * These functions are available everywhere in the application without import.
  * Keep this file lean: only truly global, stateless utilities belong here.
- *
- * Functions will be implemented in Milestone 1.1 (Core bootstrap).
  */
 
 if (! function_exists('e')) {
@@ -42,21 +40,23 @@ if (! function_exists('url')) {
 if (! function_exists('csrf_field')) {
     /**
      * Render a hidden CSRF token input field.
-     * Include in every HTML form that submits a POST request.
+     * Generates the token lazily on first call — safe to use in any form.
      *
      * @return string  HTML string — safe to echo directly
      */
     function csrf_field(): string
     {
-        // TODO: integrate with Session::get('csrf_token') in Milestone 1.2
-        $token = $_SESSION['csrf_token'] ?? '';
-        return '<input type="hidden" name="csrf_token" value="' . e($token) . '">';
+        if (empty($_SESSION['csrf_token'])) {
+            $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+        }
+
+        return '<input type="hidden" name="csrf_token" value="' . e($_SESSION['csrf_token']) . '">';
     }
 }
 
 if (! function_exists('old')) {
     /**
-     * Retrieve a previously submitted form value (repopulate after validation failure).
+     * Retrieve a previously submitted form value (repopulates inputs after a failed POST).
      *
      * @param  string $key
      * @param  mixed  $default
@@ -64,7 +64,6 @@ if (! function_exists('old')) {
      */
     function old(string $key, mixed $default = ''): mixed
     {
-        // TODO: integrate with Session::getFlash('old_input') in Milestone 1.2
         return $_SESSION['_old_input'][$key] ?? $default;
     }
 }

@@ -1,0 +1,12 @@
+Options -Indexes -MultiViews
+
+# Block direct access to sensitive file types
+<FilesMatch "\.(env|log|sql|json|lock|md|gitignore|gitkeep)$">
+    Require all denied
+</FilesMatch>
+
+# Route all requests through the front controller
+RewriteEngine On
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^ index.php [L]
