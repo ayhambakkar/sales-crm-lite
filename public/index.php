@@ -5,52 +5,66 @@ declare(strict_types=1);
 /**
  * Sales CRM Lite — Front Controller
  *
- * Single entry point for all HTTP requests.
- * The web server (Apache/Nginx) routes every request here.
+ * Every HTTP request is routed here by the web server.
+ * This file bootstraps the application and hands control to the Router.
  *
- * Request lifecycle:
- *   Browser → index.php → Config → Session → Router → Controller → View
+ * Web server setup:
+ *   Apache — see public/.htaccess
+ *   Nginx  — try_files $uri $uri/ /index.php?$query_string;
  */
 
 // ---------------------------------------------------------------------------
-// 1. Application Root
+// 1. Constants
 // ---------------------------------------------------------------------------
+
 define('APP_ROOT', dirname(__DIR__));
 
 // ---------------------------------------------------------------------------
 // 2. Autoloader
 // ---------------------------------------------------------------------------
+
 $autoloader = APP_ROOT . '/vendor/autoload.php';
 
 if (! file_exists($autoloader)) {
     http_response_code(503);
     header('Content-Type: text/plain; charset=UTF-8');
-    echo 'Dependencies not installed. Run: composer install' . PHP_EOL;
+    echo 'Dependencies not installed. Run: composer install';
     exit(1);
 }
 
 require_once $autoloader;
 
 // ---------------------------------------------------------------------------
-// 3. Bootstrap placeholder
-//    The following steps will be implemented in Milestone 1.1:
-//
-//    - Load .env configuration
-//    - Set security HTTP headers
-//    - Initialize session with hardened settings
-//    - Instantiate Router and dispatch the request
+// 3. Load environment configuration
 // ---------------------------------------------------------------------------
 
-// TODO: \App\Core\Config::load(APP_ROOT . '/.env');
-// TODO: \App\Core\Session::start();
-// TODO: (new \App\Core\Router())->dispatch();
+\App\Core\Config::load(APP_ROOT . '/.env');
 
 // ---------------------------------------------------------------------------
-// Temporary: confirm bootstrap is reachable
+// 4. Security headers (applied to every response)
 // ---------------------------------------------------------------------------
-http_response_code(200);
-header('Content-Type: text/plain; charset=UTF-8');
 
-echo 'Sales CRM Lite — Bootstrap OK' . PHP_EOL;
-echo 'PHP ' . PHP_VERSION . PHP_EOL;
-echo 'Environment: ' . (getenv('APP_ENV') ?: 'not set') . PHP_EOL;
+header('X-Frame-Options: DENY');
+header('X-Content-Type-Options: nosniff');
+header('Referrer-Policy: strict-origin-when-cross-origin');
+header('X-XSS-Protection: 1; mode=block');
+
+if (\App\Core\Config::get('APP_ENV') === 'production') {
+    header('Strict-Transport-Security: max-age=31536000; includeSubDomains');
+}
+
+// ---------------------------------------------------------------------------
+// 5. Session
+// ---------------------------------------------------------------------------
+
+\App\Core\Session::start();
+
+// ---------------------------------------------------------------------------
+// 6. Router — load route definitions and dispatch the request
+// ---------------------------------------------------------------------------
+
+$router = new \App\Core\Router();
+
+require_once APP_ROOT . '/config/routes.php';
+
+$router->dispatch();
