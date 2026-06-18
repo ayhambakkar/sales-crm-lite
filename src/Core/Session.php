@@ -83,7 +83,25 @@ class Session
     /** Destroy the session entirely (logout, etc.). */
     public static function destroy(): void
     {
+        if (session_status() !== PHP_SESSION_ACTIVE) {
+            return;
+        }
+
+        $params = session_get_cookie_params();
+
         $_SESSION = [];
+
+        if ((bool) ini_get('session.use_cookies')) {
+            setcookie(session_name(), '', [
+                'expires'  => time() - 42000,
+                'path'     => $params['path'] ?? '/',
+                'domain'   => $params['domain'] ?? '',
+                'secure'   => (bool) ($params['secure'] ?? false),
+                'httponly' => (bool) ($params['httponly'] ?? true),
+                'samesite' => $params['samesite'] ?? 'Strict',
+            ]);
+        }
+
         session_destroy();
     }
 

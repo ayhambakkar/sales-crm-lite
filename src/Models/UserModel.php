@@ -25,6 +25,29 @@ class UserModel extends Model
         );
     }
 
+    public function updatePasswordHash(int $id, string $passwordHash): bool
+    {
+        return $this->execute(
+            'UPDATE users
+             SET    password_hash = :password_hash
+             WHERE  id = :id',
+            [
+                ':id'            => $id,
+                ':password_hash' => $passwordHash,
+            ]
+        );
+    }
+
+    public function updateLastLoginAt(int $id): bool
+    {
+        return $this->execute(
+            'UPDATE users
+             SET    last_login_at = CURRENT_TIMESTAMP
+             WHERE  id = :id',
+            [':id' => $id]
+        );
+    }
+
     /**
      * Find a user by their primary key.
      * Returns null if the user does not exist or is inactive.

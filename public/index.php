@@ -40,6 +40,24 @@ require_once $autoloader;
 
 \App\Core\Config::load(APP_ROOT . '/.env');
 
+set_exception_handler(static function (\Throwable $exception): void {
+    \App\Core\Logger::exception($exception);
+    http_response_code(500);
+
+    $debug = \App\Core\Config::get('APP_ENV') === 'development'
+        && \App\Core\Config::get('APP_DEBUG', 'true') !== 'false';
+
+    if ($debug) {
+        header('Content-Type: text/plain; charset=UTF-8');
+        echo $exception::class . ': ' . $exception->getMessage() . PHP_EOL;
+        echo $exception->getTraceAsString();
+        return;
+    }
+
+    $view = APP_ROOT . '/src/Views/errors/500.php';
+    file_exists($view) ? include $view : print('500 — Internal Server Error');
+});
+
 // ---------------------------------------------------------------------------
 // 4. Security headers (applied to every response)
 // ---------------------------------------------------------------------------

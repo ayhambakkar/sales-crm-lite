@@ -5,18 +5,26 @@ declare(strict_types=1);
 namespace App\Controllers;
 
 use App\Core\Auth;
+use App\Core\Config;
 use App\Core\Controller;
+use App\Core\Logger;
 use App\Core\Session;
+use App\Models\FailedLoginModel;
 use App\Models\UserModel;
-use PDOException;
+use Throwable;
 
 class AuthController extends Controller
 {
+    private const PASSWORD_ALGO = PASSWORD_BCRYPT;
+    private const PASSWORD_OPTIONS = ['cost' => 12];
+
     private UserModel $users;
+    private FailedLoginModel $failedLogins;
 
     public function __construct()
     {
-        $this->users = new UserModel();
+        $this->users        = new UserModel();
+        $this->failedLogins = new FailedLoginModel();
     }
 
     /** GET /login */
@@ -37,8 +45,9 @@ class AuthController extends Controller
     /** POST /login */
     public function login(): void
     {
-        $email    = trim(strtolower($_POST['email'] ?? ''));
+        $email    = substr(trim(strtolower((string) ($_POST['email'] ?? ''))), 0, 255);
         $password = $_POST['password'] ?? '';
+        $ip       = $this->clientIp();
 
         if ($email === '' || $password === '') {
             Session::flash('error', 'Email and password are required.');
@@ -47,15 +56,33 @@ class AuthController extends Controller
         }
 
         try {
+            if ($this->failedLogins->isLocked($email, $ip)) {
+                Session::flash('error', 'Too many login attempts. Please try again in 15 minutes.');
+                Session::flash('_old_email', $email);
+                $this->redirect('/login');
+            }
+
             $user = $this->users->findByEmail($email);
-        } catch (PDOException) {
-            Session::flash('error', 'A system error occurred. Please try again later.');
-            $this->redirect('/login');
+        } catch (Throwable $exception) {
+            $this->handleAuthException($exception);
         }
 
         // Same message for "user not found" and "wrong password" — prevents user enumeration
         if ($user === null || ! password_verify($password, $user['password_hash'])) {
-            Session::flash('error', 'Invalid email or password.');
+            $isLocked = false;
+
+            try {
+                $this->failedLogins->recordFailure($email, $ip);
+                $isLocked = $this->failedLogins->isLocked($email, $ip);
+            } catch (Throwable $exception) {
+                $this->handleAuthException($exception);
+            }
+
+            $message = $isLocked
+                ? 'Too many login attempts. Please try again in 15 minutes.'
+                : 'Invalid email or password.';
+
+            Session::flash('error', $message);
             Session::flash('_old_email', $email);
             $this->redirect('/login');
         }
@@ -65,16 +92,43 @@ class AuthController extends Controller
             $this->redirect('/login');
         }
 
+        try {
+            $this->failedLogins->clearFailures($email, $ip);
+
+            if (password_needs_rehash($user['password_hash'], self::PASSWORD_ALGO, self::PASSWORD_OPTIONS)) {
+                $newHash = password_hash($password, self::PASSWORD_ALGO, self::PASSWORD_OPTIONS);
+                $this->users->updatePasswordHash((int) $user['id'], $newHash);
+            }
+
+            $this->users->updateLastLoginAt((int) $user['id']);
+        } catch (Throwable $exception) {
+            $this->handleAuthException($exception);
+        }
+
         Auth::login($user);
         $this->redirect('/');
+    }
+
+    private function clientIp(): string
+    {
+        return substr((string) ($_SERVER['REMOTE_ADDR'] ?? '0.0.0.0'), 0, 45);
+    }
+
+    private function handleAuthException(Throwable $exception): never
+    {
+        if (Config::get('APP_ENV') === 'development') {
+            throw $exception;
+        }
+
+        Logger::exception($exception);
+        Session::flash('error', 'A system error occurred. Please try again later.');
+        $this->redirect('/login');
     }
 
     /** POST /logout */
     public function logout(): void
     {
         Auth::logout();
-        Session::start();
-        Session::flash('info', 'You have been signed out.');
         $this->redirect('/login');
     }
 }
