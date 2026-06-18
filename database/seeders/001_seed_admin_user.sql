@@ -1,25 +1,27 @@
 -- =============================================================================
 -- Seeder: 001_seed_admin_user.sql
--- Description: Inserts the initial Admin user
+-- Description: Inserts or refreshes the local development Admin user
 --
--- IMPORTANT: This file does NOT contain a real password.
---            You must generate a bcrypt hash locally before running this file.
---
--- -----------------------------------------------------------------------------
--- Step 1: Generate a bcrypt hash for your chosen password
--- -----------------------------------------------------------------------------
---
--- Run this command in your terminal (replace "your_password" with a real one):
---
---   php -r "echo password_hash('your_password', PASSWORD_BCRYPT, ['cost' => 12]) . PHP_EOL;"
---
--- Example output (your output will look different — each hash is unique):
---   $2y$12$eImiTXuWVxfM37uY4JANjQe5Xo8Hf5Q9rT1uWvH3cJ8lJkm5Z2NK
+-- Local development login:
+--   Email:    admin@example.com
+--   Password: password
 --
 -- -----------------------------------------------------------------------------
--- Step 2: Replace the placeholder below with your generated hash, then run:
+-- Password hash
+-- -----------------------------------------------------------------------------
+--
+-- The password above is stored as a bcrypt hash generated with:
+--
+--   php -r "echo password_hash('password', PASSWORD_BCRYPT, ['cost' => 12]) . PHP_EOL;"
+--
+-- -----------------------------------------------------------------------------
+-- Usage
+-- -----------------------------------------------------------------------------
 --
 --   mysql -u <user> -p <database> < database/seeders/001_seed_admin_user.sql
+--
+-- This seeder is idempotent. Re-running it will not create a duplicate admin user
+-- because users.email has a unique index. It will refresh the local admin details.
 -- -----------------------------------------------------------------------------
 
 INSERT INTO `users` (`first_name`, `last_name`, `email`, `password_hash`, `role`, `is_active`)
@@ -27,7 +29,13 @@ VALUES (
     'Admin',
     'User',
     'admin@example.com',
-    'REPLACE_WITH_BCRYPT_HASH',   -- paste the output of the php command above
+    '$2y$12$95i3r1E6HJ/otfdj1TFvKen4.p97qWwGNWG2P4JMdJUA4AzSqzPt6',
     'admin',
     1
-);
+)
+ON DUPLICATE KEY UPDATE
+    `first_name`    = VALUES(`first_name`),
+    `last_name`     = VALUES(`last_name`),
+    `password_hash` = VALUES(`password_hash`),
+    `role`          = VALUES(`role`),
+    `is_active`     = VALUES(`is_active`);

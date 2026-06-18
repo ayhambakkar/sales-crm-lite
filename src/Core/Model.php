@@ -28,9 +28,9 @@ abstract class Model
 
         $host    = Config::get('DB_HOST', '127.0.0.1');
         $port    = Config::get('DB_PORT', '3306');
-        $name    = Config::get('DB_NAME', '');
-        $user    = Config::get('DB_USER', '');
-        $pass    = Config::get('DB_PASS', '');
+        $name    = Config::get('DB_DATABASE', '');
+        $user    = Config::get('DB_USERNAME', '');
+        $pass    = Config::get('DB_PASSWORD', '');
 
         $dsn = "mysql:host={$host};port={$port};dbname={$name};charset=utf8mb4";
 
