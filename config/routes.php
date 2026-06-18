@@ -24,7 +24,7 @@ $router->post('/logout', 'AuthController', 'logout',  ['auth', 'csrf']);
 // -----------------------------------------------------------------------------
 // Dashboard — Milestone 1.7
 // -----------------------------------------------------------------------------
-// $router->get('/', 'DashboardController', 'index', ['auth']);
+$router->get('/', 'DashboardController', 'index', ['auth']);
 
 // -----------------------------------------------------------------------------
 // User Management — Milestone 1.3
