@@ -24,11 +24,31 @@ class LeadController extends Controller
     public function index(): void
     {
         $user = $this->currentUser();
+        $filters = LeadModel::normalizeFilters($_GET, $user);
+        $sort = LeadModel::normalizeSort($_GET);
+        $pagination = LeadModel::paginationFromQuery($_GET);
+        $total = $this->leads->count($user, $filters);
+        $totalPages = max(1, (int) ceil($total / $pagination['per_page']));
+
+        if ($pagination['page'] > $totalPages) {
+            $pagination['page'] = $totalPages;
+            $pagination['offset'] = ($totalPages - 1) * $pagination['per_page'];
+        }
 
         $this->render('leads/index', [
             'title' => 'Leads',
-            'leads' => $this->leads->list($user),
+            'leads' => $this->leads->list($user, $filters, $sort, $pagination),
             'currentUser' => $user,
+            'filters' => $filters,
+            'sort' => $sort,
+            'pagination' => array_merge($pagination, [
+                'total' => $total,
+                'total_pages' => $totalPages,
+            ]),
+            'statuses' => LeadModel::statuses(),
+            'priorities' => LeadModel::priorities(),
+            'assignees' => $this->assignees(),
+            'hasActiveFilters' => LeadModel::hasActiveFilters($filters, $user),
         ]);
     }
 
