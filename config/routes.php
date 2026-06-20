@@ -52,13 +52,13 @@ $router->post('/leads/{id}/delete', 'LeadController', 'destroy', ['auth', 'csrf'
 // -----------------------------------------------------------------------------
 // Customers — Milestone 1.5
 // -----------------------------------------------------------------------------
-// $router->get( '/customers',             'CustomerController', 'index',   ['auth']);
-// $router->get( '/customers/create',      'CustomerController', 'create',  ['auth']);
-// $router->post('/customers',             'CustomerController', 'store',   ['auth', 'csrf']);
-// $router->get( '/customers/{id}',        'CustomerController', 'show',    ['auth']);
-// $router->get( '/customers/{id}/edit',   'CustomerController', 'edit',    ['auth']);
-// $router->post('/customers/{id}/edit',   'CustomerController', 'update',  ['auth', 'csrf']);
-// $router->post('/customers/{id}/delete', 'CustomerController', 'destroy', ['auth', 'csrf']);
+$router->get( '/customers',             'CustomerController', 'index',   ['auth']);
+$router->get( '/customers/create',      'CustomerController', 'create',  ['auth']);
+$router->post('/customers',             'CustomerController', 'store',   ['auth', 'csrf']);
+$router->get( '/customers/{id}',        'CustomerController', 'show',    ['auth']);
+$router->get( '/customers/{id}/edit',   'CustomerController', 'edit',    ['auth']);
+$router->post('/customers/{id}/edit',   'CustomerController', 'update',  ['auth', 'csrf']);
+$router->post('/customers/{id}/delete', 'CustomerController', 'destroy', ['auth', 'csrf']);
 
 // -----------------------------------------------------------------------------
 // Follow-Ups — Milestone 1.6
