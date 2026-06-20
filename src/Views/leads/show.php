@@ -24,6 +24,20 @@
         <dt>Status</dt>
         <dd><?= e(ucwords(str_replace('_', ' ', $lead['status']))) ?></dd>
 
+        <?php if (! empty($lead['converted_customer_id'])): ?>
+            <dt>Converted Customer</dt>
+            <dd>
+                <a href="/customers/<?= (int) $lead['converted_customer_id'] ?>">
+                    Customer #<?= (int) $lead['converted_customer_id'] ?>
+                </a>
+            </dd>
+        <?php endif; ?>
+
+        <?php if (! empty($lead['converted_at'])): ?>
+            <dt>Converted At</dt>
+            <dd><?= e($lead['converted_at']) ?></dd>
+        <?php endif; ?>
+
         <dt>Priority</dt>
         <dd><?= e(ucfirst($lead['priority'])) ?></dd>
 
@@ -42,6 +56,13 @@
         <dt>Updated</dt>
         <dd><?= e($lead['updated_at']) ?></dd>
     </dl>
+
+    <?php if (! empty($canConvert)): ?>
+        <form method="POST" action="/leads/<?= (int) $lead['id'] ?>/convert">
+            <?= csrf_field() ?>
+            <button type="submit">Convert to Customer</button>
+        </form>
+    <?php endif; ?>
 
     <form method="POST" action="/leads/<?= (int) $lead['id'] ?>/delete">
         <?= csrf_field() ?>

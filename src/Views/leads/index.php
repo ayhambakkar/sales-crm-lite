@@ -140,7 +140,13 @@
                             </a>
                         </td>
                         <td><?= e($lead['company'] ?? '') ?></td>
-                        <td><?= e(ucwords(str_replace('_', ' ', $lead['status']))) ?></td>
+                        <td>
+                            <?= e(ucwords(str_replace('_', ' ', $lead['status']))) ?>
+                            <?php if (! empty($lead['converted_customer_id'])): ?>
+                                <br>
+                                <a href="/customers/<?= (int) $lead['converted_customer_id'] ?>">View customer</a>
+                            <?php endif; ?>
+                        </td>
                         <td><?= e(ucfirst($lead['priority'])) ?></td>
                         <td><?= $lead['estimated_value'] !== null ? e(number_format((float) $lead['estimated_value'], 2)) : '' ?></td>
                         <td><?= e($lead['assigned_to'] ?? 'Unassigned') ?></td>

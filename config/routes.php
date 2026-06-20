@@ -47,6 +47,7 @@ $router->post('/leads',             'LeadController', 'store',   ['auth', 'csrf'
 $router->get( '/leads/{id}',        'LeadController', 'show',    ['auth']);
 $router->get( '/leads/{id}/edit',   'LeadController', 'edit',    ['auth']);
 $router->post('/leads/{id}/edit',   'LeadController', 'update',  ['auth', 'csrf']);
+$router->post('/leads/{id}/convert', 'LeadController', 'convert', ['auth', 'csrf']);
 $router->post('/leads/{id}/delete', 'LeadController', 'destroy', ['auth', 'csrf']);
 
 // -----------------------------------------------------------------------------

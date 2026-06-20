@@ -137,6 +137,28 @@ class CustomerModel extends Model
     }
 
     /**
+     * @param array<string, mixed> $lead
+     * @return array<string, mixed>
+     */
+    public static function dataFromLead(array $lead): array
+    {
+        return [
+            'assigned_user_id' => $lead['assigned_user_id'] ?? null,
+            'first_name' => $lead['first_name'] ?? '',
+            'last_name' => $lead['last_name'] ?? '',
+            'company' => $lead['company'] ?? null,
+            'email' => $lead['email'] ?? null,
+            'phone' => $lead['phone'] ?? null,
+            'address' => null,
+            'city' => null,
+            'postal_code' => null,
+            'country' => null,
+            'customer_status' => self::STATUS_ACTIVE,
+            'notes' => $lead['notes'] ?? null,
+        ];
+    }
+
+    /**
      * @param array<string, mixed> $user
      * @param array<string, mixed> $filters
      * @param array<string, string> $sort
@@ -222,6 +244,14 @@ class CustomerModel extends Model
         );
 
         return $this->lastInsertId();
+    }
+
+    /**
+     * @param array<string, mixed> $lead
+     */
+    public function createFromLead(array $lead): int
+    {
+        return $this->create(self::dataFromLead($lead));
     }
 
     /**

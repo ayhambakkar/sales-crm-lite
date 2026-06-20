@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Tests\Unit;
 
+use App\Core\Model;
+use App\Models\CustomerModel;
 use App\Models\LeadModel;
 use PHPUnit\Framework\TestCase;
 
@@ -29,9 +31,99 @@ class LeadModuleTest extends TestCase
 
     public function testLeadModelMethodsExist(): void
     {
-        foreach (['list', 'count', 'findById', 'create', 'update', 'delete'] as $method) {
+        foreach (['list', 'count', 'findById', 'findByIdForUser', 'findByIdForUpdate', 'create', 'update', 'delete', 'markConverted'] as $method) {
             $this->assertTrue(method_exists(LeadModel::class, $method), $method);
         }
+    }
+
+    public function testCannotConvertAlreadyConvertedLead(): void
+    {
+        $this->assertFalse(LeadModel::canConvert([
+            'status' => LeadModel::STATUS_CONVERTED,
+            'converted_customer_id' => 10,
+            'converted_at' => '2026-06-20 10:00:00',
+        ]));
+
+        $this->assertFalse(LeadModel::canConvert([
+            'status' => LeadModel::STATUS_CONVERTED,
+            'converted_customer_id' => null,
+            'converted_at' => null,
+        ]));
+
+        $this->assertTrue(LeadModel::canConvert([
+            'status' => LeadModel::STATUS_QUALIFIED,
+            'converted_customer_id' => null,
+            'converted_at' => null,
+        ]));
+    }
+
+    public function testSalesRepCannotConvertUnassignedLead(): void
+    {
+        $salesRep = ['id' => 7, 'role' => 'sales_rep'];
+        $lead = [
+            'assigned_user_id' => 99,
+            'status' => LeadModel::STATUS_QUALIFIED,
+            'converted_customer_id' => null,
+            'converted_at' => null,
+        ];
+
+        $this->assertFalse(LeadModel::canAccessLead($salesRep, $lead));
+        $this->assertTrue(LeadModel::canConvert($lead));
+    }
+
+    public function testAdminCanConvertAnyLead(): void
+    {
+        $admin = ['id' => 1, 'role' => 'admin'];
+        $lead = [
+            'assigned_user_id' => 99,
+            'status' => LeadModel::STATUS_QUALIFIED,
+            'converted_customer_id' => null,
+            'converted_at' => null,
+        ];
+
+        $this->assertTrue(LeadModel::canAccessLead($admin, $lead));
+        $this->assertTrue(LeadModel::canConvert($lead));
+    }
+
+    public function testConversionMappingContainsExpectedFields(): void
+    {
+        $mapped = CustomerModel::dataFromLead([
+            'assigned_user_id' => 7,
+            'first_name' => 'Ada',
+            'last_name' => 'Lovelace',
+            'company' => 'Analytical Engines LLC',
+            'email' => 'ada@example.com',
+            'phone' => '555-0100',
+            'notes' => 'Interested in the premium plan.',
+        ]);
+
+        $this->assertSame(7, $mapped['assigned_user_id']);
+        $this->assertSame('Ada', $mapped['first_name']);
+        $this->assertSame('Lovelace', $mapped['last_name']);
+        $this->assertSame('Analytical Engines LLC', $mapped['company']);
+        $this->assertSame('ada@example.com', $mapped['email']);
+        $this->assertSame('555-0100', $mapped['phone']);
+        $this->assertSame('Interested in the premium plan.', $mapped['notes']);
+        $this->assertSame(CustomerModel::STATUS_ACTIVE, $mapped['customer_status']);
+        $this->assertNull($mapped['address']);
+        $this->assertNull($mapped['city']);
+    }
+
+    public function testConversionUsesTransactionCapableModelMethods(): void
+    {
+        $model = new class extends Model {
+        };
+
+        foreach (['beginTransaction', 'commit', 'rollBack', 'inTransaction'] as $method) {
+            $this->assertTrue(method_exists($model, $method), $method);
+        }
+    }
+
+    public function testConvertedLeadStatusIsValidated(): void
+    {
+        $this->assertTrue(LeadModel::isValidStatus(LeadModel::STATUS_CONVERTED));
+        $this->assertTrue(LeadModel::isConverted(['status' => LeadModel::STATUS_CONVERTED]));
+        $this->assertFalse(LeadModel::canConvert(['status' => LeadModel::STATUS_CONVERTED]));
     }
 
     public function testSalesRepScopingLogic(): void

@@ -165,6 +165,24 @@ class LeadModel extends Model
     }
 
     /**
+     * @param array<string, mixed> $lead
+     */
+    public static function isConverted(array $lead): bool
+    {
+        return ($lead['status'] ?? '') === self::STATUS_CONVERTED
+            || ! empty($lead['converted_customer_id'])
+            || ! empty($lead['converted_at']);
+    }
+
+    /**
+     * @param array<string, mixed> $lead
+     */
+    public static function canConvert(array $lead): bool
+    {
+        return ! self::isConverted($lead);
+    }
+
+    /**
      * @param array<string, mixed> $user
      * @param array<string, mixed> $filters
      * @param array<string, string> $sort
@@ -180,7 +198,7 @@ class LeadModel extends Model
 
         $sql = 'SELECT l.id, l.assigned_user_id, l.first_name, l.last_name, l.company,
                        l.email, l.phone, l.source, l.status, l.priority, l.estimated_value,
-                       l.created_at, l.updated_at,
+                       l.converted_customer_id, l.converted_at, l.created_at, l.updated_at,
                        CONCAT(u.first_name, " ", u.last_name) AS assigned_to
                 FROM   leads l
                 LEFT   JOIN users u ON l.assigned_user_id = u.id'
@@ -229,6 +247,37 @@ class LeadModel extends Model
         }
 
         $sql .= ' LIMIT 1';
+
+        return $this->findOne($sql, $params);
+    }
+
+    /**
+     * @param array<string, mixed> $user
+     * @return array<string, mixed>|null
+     */
+    public function findByIdForUser(int $id, array $user): ?array
+    {
+        return $this->findById($id, $user);
+    }
+
+    /**
+     * @param array<string, mixed> $user
+     * @return array<string, mixed>|null
+     */
+    public function findByIdForUpdate(int $id, array $user): ?array
+    {
+        $sql = 'SELECT l.*, CONCAT(u.first_name, " ", u.last_name) AS assigned_to
+                FROM   leads l
+                LEFT   JOIN users u ON l.assigned_user_id = u.id
+                WHERE  l.id = :id';
+        $params = [':id' => $id];
+
+        if (! self::canAccessAll($user)) {
+            $sql .= ' AND l.assigned_user_id = :user_id';
+            $params[':user_id'] = (int) $user['id'];
+        }
+
+        $sql .= ' LIMIT 1 FOR UPDATE';
 
         return $this->findOne($sql, $params);
     }
@@ -289,6 +338,26 @@ class LeadModel extends Model
         }
 
         return $this->execute($sql, $params);
+    }
+
+    public function markConverted(int $id, int $customerId): bool
+    {
+        return $this->execute(
+            'UPDATE leads
+             SET    status = :converted_status_set,
+                    converted_customer_id = :customer_id,
+                    converted_at = NOW()
+             WHERE  id = :id
+             AND    status <> :converted_status_where
+             AND    converted_customer_id IS NULL
+             AND    converted_at IS NULL',
+            [
+                ':id' => $id,
+                ':customer_id' => $customerId,
+                ':converted_status_set' => self::STATUS_CONVERTED,
+                ':converted_status_where' => self::STATUS_CONVERTED,
+            ]
+        );
     }
 
     /**

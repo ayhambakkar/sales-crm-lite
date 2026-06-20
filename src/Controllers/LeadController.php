@@ -7,17 +7,22 @@ namespace App\Controllers;
 use App\Core\Auth;
 use App\Core\Controller;
 use App\Core\Session;
+use App\Models\CustomerModel;
 use App\Models\LeadModel;
 use App\Models\UserModel;
+use RuntimeException;
+use Throwable;
 
 class LeadController extends Controller
 {
     private LeadModel $leads;
+    private CustomerModel $customers;
     private UserModel $users;
 
     public function __construct()
     {
         $this->leads = new LeadModel();
+        $this->customers = new CustomerModel();
         $this->users = new UserModel();
     }
 
@@ -98,6 +103,7 @@ class LeadController extends Controller
             'title' => 'Lead Details',
             'lead' => $lead,
             'currentUser' => $this->currentUser(),
+            'canConvert' => LeadModel::canConvert($lead),
         ]);
     }
 
@@ -150,6 +156,51 @@ class LeadController extends Controller
 
         Session::flash('success', 'Lead deleted successfully.');
         $this->redirect('/leads');
+    }
+
+    public function convert(string $id): void
+    {
+        $user = $this->currentUser();
+        $lead = $this->findLeadOrFail($id);
+
+        if (! LeadModel::canConvert($lead)) {
+            Session::flash('error', 'This lead has already been converted.');
+            $this->redirect('/leads/' . (int) $lead['id']);
+        }
+
+        try {
+            $this->leads->beginTransaction();
+
+            $lead = $this->leads->findByIdForUpdate((int) $lead['id'], $user);
+
+            if ($lead === null) {
+                $this->leads->rollBack();
+                $this->abort(404);
+            }
+
+            if (! LeadModel::canConvert($lead)) {
+                $this->leads->rollBack();
+                Session::flash('error', 'This lead has already been converted.');
+                $this->redirect('/leads/' . (int) $lead['id']);
+            }
+
+            $customerId = $this->customers->createFromLead($lead);
+
+            if (! $this->leads->markConverted((int) $lead['id'], $customerId)) {
+                throw new RuntimeException('Unable to mark lead as converted.');
+            }
+
+            $this->leads->commit();
+
+            Session::flash('success', 'Lead converted to customer successfully.');
+            $this->redirect('/customers/' . $customerId);
+        } catch (Throwable $exception) {
+            if ($this->leads->inTransaction()) {
+                $this->leads->rollBack();
+            }
+
+            throw $exception;
+        }
     }
 
     /**
