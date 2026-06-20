@@ -29,12 +29,14 @@ $router->get('/', 'DashboardController', 'index', ['auth']);
 // -----------------------------------------------------------------------------
 // User Management — Milestone 1.3
 // -----------------------------------------------------------------------------
-// $router->get( '/users',             'UserController', 'index',   ['auth', 'admin']);
-// $router->get( '/users/create',      'UserController', 'create',  ['auth', 'admin']);
-// $router->post('/users',             'UserController', 'store',   ['auth', 'admin', 'csrf']);
-// $router->get( '/users/{id}/edit',   'UserController', 'edit',    ['auth', 'admin']);
-// $router->post('/users/{id}/edit',   'UserController', 'update',  ['auth', 'admin', 'csrf']);
-// $router->post('/users/{id}/delete', 'UserController', 'destroy', ['auth', 'admin', 'csrf']);
+$router->get( '/users',                     'UserController', 'index',         ['auth', 'admin']);
+$router->get( '/users/create',              'UserController', 'create',        ['auth', 'admin']);
+$router->post('/users',                     'UserController', 'store',         ['auth', 'admin', 'csrf']);
+$router->get( '/users/{id}/edit',           'UserController', 'edit',          ['auth', 'admin']);
+$router->post('/users/{id}/edit',           'UserController', 'update',        ['auth', 'admin', 'csrf']);
+$router->post('/users/{id}/deactivate',     'UserController', 'deactivate',    ['auth', 'admin', 'csrf']);
+$router->post('/users/{id}/activate',       'UserController', 'activate',      ['auth', 'admin', 'csrf']);
+$router->post('/users/{id}/reset-password', 'UserController', 'resetPassword', ['auth', 'admin', 'csrf']);
 
 // -----------------------------------------------------------------------------
 // Leads — Milestone 1.4
