@@ -64,11 +64,12 @@ $router->post('/customers/{id}/delete', 'CustomerController', 'destroy', ['auth'
 // -----------------------------------------------------------------------------
 // Follow-Ups — Milestone 1.6
 // -----------------------------------------------------------------------------
-// $router->get( '/follow-ups',             'FollowUpController', 'index',         ['auth']);
-// $router->get( '/follow-ups/create',      'FollowUpController', 'create',        ['auth']);
-// $router->post('/follow-ups',             'FollowUpController', 'store',         ['auth', 'csrf']);
-// $router->get( '/follow-ups/{id}/edit',   'FollowUpController', 'edit',          ['auth']);
-// $router->post('/follow-ups/{id}/edit',   'FollowUpController', 'update',        ['auth', 'csrf']);
-// $router->post('/follow-ups/{id}/done',   'FollowUpController', 'markDone',      ['auth', 'csrf']);
-// $router->post('/follow-ups/{id}/cancel', 'FollowUpController', 'markCancelled', ['auth', 'csrf']);
-// $router->post('/follow-ups/{id}/delete', 'FollowUpController', 'destroy',       ['auth', 'csrf']);
+$router->get( '/follow-ups',             'FollowUpController', 'index',         ['auth']);
+$router->get( '/follow-ups/create',      'FollowUpController', 'create',        ['auth']);
+$router->post('/follow-ups',             'FollowUpController', 'store',         ['auth', 'csrf']);
+$router->get( '/follow-ups/{id}',        'FollowUpController', 'show',          ['auth']);
+$router->get( '/follow-ups/{id}/edit',   'FollowUpController', 'edit',          ['auth']);
+$router->post('/follow-ups/{id}/edit',   'FollowUpController', 'update',        ['auth', 'csrf']);
+$router->post('/follow-ups/{id}/done',   'FollowUpController', 'markDone',      ['auth', 'csrf']);
+$router->post('/follow-ups/{id}/cancel', 'FollowUpController', 'markCancelled', ['auth', 'csrf']);
+$router->post('/follow-ups/{id}/delete', 'FollowUpController', 'destroy',       ['auth', 'csrf']);

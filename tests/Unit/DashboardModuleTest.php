@@ -40,7 +40,7 @@ class DashboardModuleTest extends TestCase
 
     public function testDashboardModelMethodsExist(): void
     {
-        foreach (['overview', 'stats', 'latestLeads', 'latestCustomers', 'recentConversions'] as $method) {
+        foreach (['overview', 'stats', 'latestLeads', 'latestCustomers', 'recentConversions', 'upcomingFollowUps'] as $method) {
             $this->assertTrue(method_exists(DashboardModel::class, $method), $method);
         }
     }
@@ -65,6 +65,18 @@ class DashboardModuleTest extends TestCase
             'vip_customers',
             'estimated_open_pipeline_value',
             'conversion_rate',
+            'overdue_follow_ups',
+            'due_today_follow_ups',
         ], DashboardModel::statKeys());
+    }
+
+    public function testDashboardFollowUpKpiShapeIncludesOverdueAndDueToday(): void
+    {
+        $stats = DashboardModel::emptyStats();
+
+        $this->assertArrayHasKey('overdue_follow_ups', $stats);
+        $this->assertArrayHasKey('due_today_follow_ups', $stats);
+        $this->assertSame(0, $stats['overdue_follow_ups']);
+        $this->assertSame(0, $stats['due_today_follow_ups']);
     }
 }

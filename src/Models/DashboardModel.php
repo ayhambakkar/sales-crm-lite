@@ -25,6 +25,8 @@ class DashboardModel extends Model
             'vip_customers',
             'estimated_open_pipeline_value',
             'conversion_rate',
+            'overdue_follow_ups',
+            'due_today_follow_ups',
         ];
     }
 
@@ -45,6 +47,8 @@ class DashboardModel extends Model
             'vip_customers' => 0,
             'estimated_open_pipeline_value' => 0.0,
             'conversion_rate' => 0.0,
+            'overdue_follow_ups' => 0,
+            'due_today_follow_ups' => 0,
         ];
     }
 
@@ -89,7 +93,8 @@ class DashboardModel extends Model
      *     stats: array<string, int|float>,
      *     latest_leads: array<int, array<string, mixed>>,
      *     latest_customers: array<int, array<string, mixed>>,
-     *     recent_conversions: array<int, array<string, mixed>>
+     *     recent_conversions: array<int, array<string, mixed>>,
+     *     upcoming_follow_ups: array<int, array<string, mixed>>
      * }
      */
     public function overview(array $user): array
@@ -99,6 +104,7 @@ class DashboardModel extends Model
             'latest_leads' => $this->latestLeads($user),
             'latest_customers' => $this->latestCustomers($user),
             'recent_conversions' => $this->recentConversions($user),
+            'upcoming_follow_ups' => $this->upcomingFollowUps($user),
         ];
     }
 
@@ -110,8 +116,9 @@ class DashboardModel extends Model
     {
         $leadStats = $this->leadStats($user);
         $customerStats = $this->customerStats($user);
+        $followUpStats = $this->followUpStats($user);
 
-        return array_merge(self::emptyStats(), $leadStats, $customerStats, [
+        return array_merge(self::emptyStats(), $leadStats, $customerStats, $followUpStats, [
             'conversion_rate' => self::conversionRate(
                 (int) $leadStats['total_leads'],
                 (int) $leadStats['converted_leads']
@@ -133,6 +140,35 @@ class DashboardModel extends Model
                 LEFT   JOIN users u ON l.assigned_user_id = u.id'
             . self::whereSql([$scope])
             . ' ORDER BY l.created_at DESC, l.id DESC
+                LIMIT ' . max(1, min(10, $limit));
+
+        return $this->findAll($sql, $params);
+    }
+
+    /**
+     * @param array<string, mixed> $user
+     * @return array<int, array<string, mixed>>
+     */
+    public function upcomingFollowUps(array $user, int $limit = 5): array
+    {
+        [$scope, $scopeParams] = self::scopeCondition('f', $user, 'upcoming_follow_ups_user_id');
+        $params = array_merge([
+            ':upcoming_status' => FollowUpModel::STATUS_OPEN,
+        ], $scopeParams);
+
+        $sql = 'SELECT f.id, f.title, f.due_at, f.priority, f.status,
+                       f.lead_id, f.customer_id,
+                       CONCAT(l.first_name, " ", l.last_name) AS lead_name,
+                       l.company AS lead_company,
+                       CONCAT(c.first_name, " ", c.last_name) AS customer_name,
+                       c.company AS customer_company,
+                       CONCAT(u.first_name, " ", u.last_name) AS assigned_to
+                FROM   follow_ups f
+                LEFT   JOIN leads l ON f.lead_id = l.id
+                LEFT   JOIN customers c ON f.customer_id = c.id
+                LEFT   JOIN users u ON f.assigned_user_id = u.id'
+            . self::whereSql(array_filter(['f.status = :upcoming_status', 'f.due_at >= NOW()', $scope]))
+            . ' ORDER BY f.due_at ASC, f.id DESC
                 LIMIT ' . max(1, min(10, $limit));
 
         return $this->findAll($sql, $params);
@@ -250,6 +286,32 @@ class DashboardModel extends Model
             'total_customers' => (int) ($row['total_customers'] ?? 0),
             'active_customers' => (int) ($row['active_customers'] ?? 0),
             'vip_customers' => (int) ($row['vip_customers'] ?? 0),
+        ];
+    }
+
+    /**
+     * @param array<string, mixed> $user
+     * @return array<string, int>
+     */
+    private function followUpStats(array $user): array
+    {
+        [$scope, $scopeParams] = self::scopeCondition('f', $user, 'follow_up_stats_user_id');
+        $params = array_merge([
+            ':overdue_status' => FollowUpModel::STATUS_OPEN,
+            ':due_today_status' => FollowUpModel::STATUS_OPEN,
+        ], $scopeParams);
+
+        $row = $this->findOne(
+            'SELECT COALESCE(SUM(CASE WHEN f.status = :overdue_status AND f.due_at < NOW() THEN 1 ELSE 0 END), 0) AS overdue_follow_ups,
+                    COALESCE(SUM(CASE WHEN f.status = :due_today_status AND DATE(f.due_at) = CURRENT_DATE THEN 1 ELSE 0 END), 0) AS due_today_follow_ups
+             FROM   follow_ups f'
+            . self::whereSql([$scope]),
+            $params
+        ) ?? [];
+
+        return [
+            'overdue_follow_ups' => (int) ($row['overdue_follow_ups'] ?? 0),
+            'due_today_follow_ups' => (int) ($row['due_today_follow_ups'] ?? 0),
         ];
     }
 

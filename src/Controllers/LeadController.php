@@ -8,6 +8,7 @@ use App\Core\Auth;
 use App\Core\Controller;
 use App\Core\Session;
 use App\Models\CustomerModel;
+use App\Models\FollowUpModel;
 use App\Models\LeadModel;
 use App\Models\UserModel;
 use RuntimeException;
@@ -17,12 +18,14 @@ class LeadController extends Controller
 {
     private LeadModel $leads;
     private CustomerModel $customers;
+    private FollowUpModel $followUps;
     private UserModel $users;
 
     public function __construct()
     {
         $this->leads = new LeadModel();
         $this->customers = new CustomerModel();
+        $this->followUps = new FollowUpModel();
         $this->users = new UserModel();
     }
 
@@ -98,12 +101,14 @@ class LeadController extends Controller
     public function show(string $id): void
     {
         $lead = $this->findLeadOrFail($id);
+        $user = $this->currentUser();
 
         $this->render('leads/show', [
             'title' => 'Lead Details',
             'lead' => $lead,
-            'currentUser' => $this->currentUser(),
+            'currentUser' => $user,
             'canConvert' => LeadModel::canConvert($lead),
+            'followUps' => $this->followUps->listForLead((int) $lead['id'], $user),
         ]);
     }
 

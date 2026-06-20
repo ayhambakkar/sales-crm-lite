@@ -77,4 +77,9 @@
             <button type="submit" class="mt-4 rounded-lg border border-red-200 px-4 py-2 text-sm font-semibold text-red-700 hover:bg-red-50">Delete Customer</button>
         </form>
     </div>
+
+    <?php
+        $createFollowUpUrl = '/follow-ups/create?customer_id=' . (int) $customer['id'];
+        include APP_ROOT . '/src/Views/partials/follow-up-list.php';
+    ?>
 </section>

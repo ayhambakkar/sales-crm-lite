@@ -3,6 +3,7 @@
     $latest_leads = $latest_leads ?? [];
     $latest_customers = $latest_customers ?? [];
     $recent_conversions = $recent_conversions ?? [];
+    $upcoming_follow_ups = $upcoming_follow_ups ?? [];
     $scopeLabel = ($currentUser['role'] ?? '') === 'admin'
         ? 'Global CRM overview'
         : 'Your assigned CRM records';
@@ -11,6 +12,7 @@
 ?>
     <a href="/leads/create" class="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-700">New Lead</a>
     <a href="/customers/create" class="rounded-lg bg-white px-4 py-2 text-sm font-semibold text-slate-700 ring-1 ring-slate-200 hover:bg-slate-50">New Customer</a>
+    <a href="/follow-ups/create" class="rounded-lg bg-white px-4 py-2 text-sm font-semibold text-slate-700 ring-1 ring-slate-200 hover:bg-slate-50">New Follow-Up</a>
     <a href="/leads" class="rounded-lg border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50">View Leads</a>
     <a href="/customers" class="rounded-lg border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50">View Customers</a>
 <?php
@@ -31,6 +33,8 @@
         ['label' => 'VIP Customers', 'value' => number_format((int) $stats['vip_customers']), 'hint' => 'High-value accounts'],
         ['label' => 'Open Pipeline', 'value' => '$' . number_format((float) $stats['estimated_open_pipeline_value'], 2), 'hint' => 'Estimated open value'],
         ['label' => 'Conversion Rate', 'value' => number_format((float) $stats['conversion_rate'], 1) . '%', 'hint' => 'Converted / total leads'],
+        ['label' => 'Overdue Follow-Ups', 'value' => number_format((int) $stats['overdue_follow_ups']), 'hint' => 'Open tasks past due'],
+        ['label' => 'Due Today', 'value' => number_format((int) $stats['due_today_follow_ups']), 'hint' => 'Open follow-ups today'],
     ];
 ?>
 
@@ -90,9 +94,68 @@
         <div class="mt-5 grid gap-3">
             <a href="/leads/create" class="rounded-lg bg-blue-600 px-4 py-2 text-center text-sm font-semibold text-white shadow-sm hover:bg-blue-700">Create Lead</a>
             <a href="/customers/create" class="rounded-lg border border-slate-200 px-4 py-2 text-center text-sm font-semibold text-slate-700 hover:bg-slate-50">Create Customer</a>
+            <a href="/follow-ups/create" class="rounded-lg border border-slate-200 px-4 py-2 text-center text-sm font-semibold text-slate-700 hover:bg-slate-50">Create Follow-Up</a>
             <a href="/leads?status=qualified" class="rounded-lg border border-slate-200 px-4 py-2 text-center text-sm font-semibold text-slate-700 hover:bg-slate-50">Review Qualified Leads</a>
         </div>
     </div>
+</section>
+
+<section class="mt-6 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+    <div class="flex flex-col gap-3 border-b border-slate-200 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+            <h2 class="text-base font-semibold text-slate-950">Upcoming Follow-Ups</h2>
+            <p class="mt-1 text-sm text-slate-500">The next 5 open follow-up tasks in scope.</p>
+        </div>
+        <a href="/follow-ups" class="text-sm font-semibold text-blue-700 hover:text-blue-900">View all</a>
+    </div>
+
+    <?php if (empty($upcoming_follow_ups)): ?>
+        <div class="p-6 text-sm text-slate-500">No upcoming follow-ups are scheduled.</div>
+    <?php else: ?>
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-slate-200">
+                <thead class="bg-slate-50">
+                    <tr>
+                        <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">Task</th>
+                        <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">Related</th>
+                        <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">Priority</th>
+                        <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">Due</th>
+                        <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">Owner</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100">
+                    <?php foreach ($upcoming_follow_ups as $followUp): ?>
+                        <?php
+                            $relatedUrl = ! empty($followUp['lead_id'])
+                                ? '/leads/' . (int) $followUp['lead_id']
+                                : '/customers/' . (int) $followUp['customer_id'];
+                            $relatedLabel = ! empty($followUp['lead_id'])
+                                ? ($followUp['lead_name'] ?? 'Lead #' . (int) $followUp['lead_id'])
+                                : ($followUp['customer_name'] ?? 'Customer #' . (int) $followUp['customer_id']);
+                            $relatedCompany = ! empty($followUp['lead_id']) ? ($followUp['lead_company'] ?? '') : ($followUp['customer_company'] ?? '');
+                        ?>
+                        <tr class="hover:bg-slate-50">
+                            <td class="whitespace-nowrap px-4 py-3 text-sm">
+                                <a href="/follow-ups/<?= (int) $followUp['id'] ?>" class="font-medium text-blue-700 hover:text-blue-900"><?= e($followUp['title']) ?></a>
+                            </td>
+                            <td class="whitespace-nowrap px-4 py-3 text-sm">
+                                <a href="<?= e($relatedUrl) ?>" class="font-medium text-slate-700 hover:text-slate-950"><?= e($relatedLabel) ?></a>
+                                <p class="text-xs text-slate-500"><?= e($relatedCompany) ?></p>
+                            </td>
+                            <td class="whitespace-nowrap px-4 py-3 text-sm">
+                                <?php
+                                    $priorityValue = $followUp['priority'];
+                                    include APP_ROOT . '/src/Views/partials/priority-badge.php';
+                                ?>
+                            </td>
+                            <td class="whitespace-nowrap px-4 py-3 text-sm text-slate-600"><?= e($followUp['due_at']) ?></td>
+                            <td class="whitespace-nowrap px-4 py-3 text-sm text-slate-600"><?= e($followUp['assigned_to'] ?? 'Unassigned') ?></td>
+                        </tr>
+                    <?php endforeach; ?>
+                </tbody>
+            </table>
+        </div>
+    <?php endif; ?>
 </section>
 
 <section class="mt-6 grid gap-6 xl:grid-cols-2">

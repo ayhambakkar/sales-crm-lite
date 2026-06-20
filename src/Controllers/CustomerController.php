@@ -8,16 +8,19 @@ use App\Core\Auth;
 use App\Core\Controller;
 use App\Core\Session;
 use App\Models\CustomerModel;
+use App\Models\FollowUpModel;
 use App\Models\UserModel;
 
 class CustomerController extends Controller
 {
     private CustomerModel $customers;
+    private FollowUpModel $followUps;
     private UserModel $users;
 
     public function __construct()
     {
         $this->customers = new CustomerModel();
+        $this->followUps = new FollowUpModel();
         $this->users = new UserModel();
     }
 
@@ -90,11 +93,13 @@ class CustomerController extends Controller
     public function show(string $id): void
     {
         $customer = $this->findCustomerOrFail($id);
+        $user = $this->currentUser();
 
         $this->render('customers/show', [
             'title' => 'Customer Details',
             'customer' => $customer,
-            'currentUser' => $this->currentUser(),
+            'currentUser' => $user,
+            'followUps' => $this->followUps->listForCustomer((int) $customer['id'], $user),
         ]);
     }
 

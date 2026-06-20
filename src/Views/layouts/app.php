@@ -40,6 +40,11 @@
                     $active = $isActive('/customers');
                     include APP_ROOT . '/src/Views/partials/nav-item.php';
 
+                    $href = '/follow-ups';
+                    $label = 'Follow-Ups';
+                    $active = $isActive('/follow-ups');
+                    include APP_ROOT . '/src/Views/partials/nav-item.php';
+
                     if (($currentUser['role'] ?? '') === 'admin') {
                         $href = '/users';
                         $label = 'Users';
@@ -90,6 +95,11 @@
                         $href = '/customers';
                         $label = 'Customers';
                         $active = $isActive('/customers');
+                        include APP_ROOT . '/src/Views/partials/nav-item.php';
+
+                        $href = '/follow-ups';
+                        $label = 'Follow-Ups';
+                        $active = $isActive('/follow-ups');
                         include APP_ROOT . '/src/Views/partials/nav-item.php';
 
                         if (($currentUser['role'] ?? '') === 'admin') {

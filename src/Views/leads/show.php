@@ -103,4 +103,9 @@
             </form>
         </div>
     </div>
+
+    <?php
+        $createFollowUpUrl = '/follow-ups/create?lead_id=' . (int) $lead['id'];
+        include APP_ROOT . '/src/Views/partials/follow-up-list.php';
+    ?>
 </section>
