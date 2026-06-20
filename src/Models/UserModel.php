@@ -68,6 +68,19 @@ class UserModel extends Model
     }
 
     /**
+     * @return array<int, array{id: int, first_name: string, last_name: string, email: string, role: string}>
+     */
+    public function listActiveAssignableUsers(): array
+    {
+        return $this->findAll(
+            'SELECT id, first_name, last_name, email, role
+             FROM   users
+             WHERE  is_active = 1
+             ORDER  BY last_name ASC, first_name ASC, id ASC'
+        );
+    }
+
+    /**
      * Find a user by email address.
      * Used exclusively by AuthController — never exposes the password hash outside of auth.
      *
@@ -180,6 +193,21 @@ class UserModel extends Model
             'SELECT id, first_name, last_name, email, role, is_active, last_login_at, created_at, updated_at
              FROM   users
              WHERE  id = :id
+             LIMIT  1',
+            [':id' => $id]
+        );
+    }
+
+    /**
+     * @return array{id: int, first_name: string, last_name: string, email: string, role: string, is_active: int}|null
+     */
+    public function findActiveById(int $id): ?array
+    {
+        return $this->findOne(
+            'SELECT id, first_name, last_name, email, role, is_active
+             FROM   users
+             WHERE  id = :id
+               AND  is_active = 1
              LIMIT  1',
             [':id' => $id]
         );

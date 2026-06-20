@@ -14,6 +14,7 @@
 
     <nav>
         <a href="/">Dashboard</a>
+        <a href="/leads">Leads</a>
 
         <?php if (($currentUser['role'] ?? '') === 'admin'): ?>
             <a href="/users">Users</a>
