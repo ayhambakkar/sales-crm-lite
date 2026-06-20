@@ -1,12 +1,17 @@
 <section>
-    <header>
-        <h1>Edit Customer</h1>
-        <p><a href="/customers/<?= (int) $customer['id'] ?>">Back to Customer</a></p>
-    </header>
+    <?php
+        $pageTitle = 'Edit Customer';
+        $pageDescription = 'Update account details, status, and assignment.';
+        $pageActions = '<a href="/customers/' . (int) $customer['id'] . '" class="rounded-lg border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50">Back to Customer</a>';
+        include APP_ROOT . '/src/Views/partials/page-header.php';
+    ?>
 
-    <form method="POST" action="/customers/<?= (int) $customer['id'] ?>/edit" novalidate>
+    <form method="POST" action="/customers/<?= (int) $customer['id'] ?>/edit" class="rounded-xl border border-slate-200 bg-white p-6 shadow-sm" novalidate>
         <?= csrf_field() ?>
         <?php include APP_ROOT . '/src/Views/customers/form.php'; ?>
-        <button type="submit">Save Changes</button>
+        <div class="mt-6 flex justify-end gap-3">
+            <a href="/customers/<?= (int) $customer['id'] ?>" class="rounded-lg border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50">Cancel</a>
+            <button type="submit" class="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-700">Save Changes</button>
+        </div>
     </form>
 </section>

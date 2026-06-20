@@ -4,33 +4,28 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= e($title ?? 'Sales CRM Lite') ?></title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="/assets/css/app.css">
 </head>
-<body class="min-h-screen bg-gray-100 flex items-center justify-center px-4">
+<body class="min-h-screen bg-slate-950 px-4 py-10">
 
-    <div class="w-full max-w-md">
-
-        <!-- Logo / App name -->
-        <div class="text-center mb-8">
-            <div class="inline-flex items-center justify-center w-12 h-12 bg-blue-600 rounded-xl mb-4">
-                <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                          d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>
-                </svg>
+    <div class="mx-auto flex min-h-[calc(100vh-5rem)] w-full max-w-md items-center">
+        <div class="w-full">
+            <div class="mb-8 text-center">
+                <div class="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-blue-600 text-lg font-bold text-white shadow-lg shadow-blue-950/30">
+                    S
+                </div>
+                <h1 class="text-2xl font-semibold text-white">Sales CRM Lite</h1>
+                <p class="mt-2 text-sm text-slate-400">Sign in to manage leads, customers, and team access.</p>
             </div>
-            <h1 class="text-2xl font-bold text-gray-900">Sales CRM Lite</h1>
-            <p class="text-sm text-gray-500 mt-1">Customer Relationship Management</p>
-        </div>
 
-        <!-- Card -->
-        <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-8">
-            <?= $content ?>
-        </div>
+            <div class="rounded-2xl border border-white/10 bg-white p-8 shadow-2xl shadow-slate-950/40">
+                <?= $content ?>
+            </div>
 
-        <!-- Footer -->
-        <p class="text-center text-xs text-gray-400 mt-6">
-            &copy; <?= date('Y') ?> Sales CRM Lite
-        </p>
+            <p class="mt-6 text-center text-xs text-slate-500">
+                &copy; <?= date('Y') ?> Sales CRM Lite
+            </p>
+        </div>
 
     </div>
 

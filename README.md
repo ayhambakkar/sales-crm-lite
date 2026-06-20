@@ -60,7 +60,7 @@ The project is intentionally built **without a PHP framework** to demonstrate a 
 - PHP 8.2 or higher
 - MySQL 8.0+ or MariaDB 10.6+
 - Composer
-- Node.js + npm *(optional — only needed for Tailwind CSS CLI build)*
+- Node.js + npm
 
 ---
 
@@ -79,7 +79,22 @@ cd sales-crm-lite
 composer install
 ```
 
-### 3. Configure the environment
+### 3. Install frontend dependencies and build CSS
+
+```bash
+npm install
+npm run build:css
+```
+
+During UI development, run the Tailwind watcher:
+
+```bash
+npm run dev:css
+```
+
+The compiled stylesheet is written to `public/assets/css/app.css`.
+
+### 4. Configure the environment
 
 ```bash
 cp .env.example .env
@@ -99,7 +114,7 @@ DB_USER=your_db_user
 DB_PASS=your_db_password
 ```
 
-### 4. Set up the database
+### 5. Set up the database
 
 ```bash
 # Create the database
@@ -112,7 +127,7 @@ mysql -u root -p sales_crm < database/migrations/schema.sql
 mysql -u root -p sales_crm < database/seeders/seed.sql
 ```
 
-### 5. Start the development server
+### 6. Start the development server
 
 ```bash
 php -S localhost:8000 -t public/

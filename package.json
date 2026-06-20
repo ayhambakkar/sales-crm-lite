@@ -1,0 +1,13 @@
+{
+  "name": "sales-crm-lite",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Tailwind UI build pipeline for Sales CRM Lite.",
+  "scripts": {
+    "build:css": "tailwindcss -i ./resources/css/app.css -o ./public/assets/css/app.css --minify",
+    "dev:css": "tailwindcss -i ./resources/css/app.css -o ./public/assets/css/app.css --watch"
+  },
+  "devDependencies": {
+    "tailwindcss": "^3.4.17"
+  }
+}
