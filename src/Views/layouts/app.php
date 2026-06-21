@@ -45,6 +45,11 @@
                     $active = $isActive('/follow-ups');
                     include APP_ROOT . '/src/Views/partials/nav-item.php';
 
+                    $href = '/reports';
+                    $label = 'Reports';
+                    $active = $isActive('/reports');
+                    include APP_ROOT . '/src/Views/partials/nav-item.php';
+
                     $href = '/activities';
                     $label = 'Activity';
                     $active = $isActive('/activities');
@@ -105,6 +110,11 @@
                         $href = '/follow-ups';
                         $label = 'Follow-Ups';
                         $active = $isActive('/follow-ups');
+                        include APP_ROOT . '/src/Views/partials/nav-item.php';
+
+                        $href = '/reports';
+                        $label = 'Reports';
+                        $active = $isActive('/reports');
                         include APP_ROOT . '/src/Views/partials/nav-item.php';
 
                         $href = '/activities';

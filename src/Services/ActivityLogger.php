@@ -120,6 +120,25 @@ class ActivityLogger
     /**
      * @param array<string, mixed> $metadata
      */
+    public function logSystemAction(
+        string $action,
+        ?string $description = null,
+        array $metadata = [],
+        ?int $actorUserId = null
+    ): void {
+        $this->log(
+            $actorUserId ?? Auth::id(),
+            ActivityModel::ENTITY_SYSTEM,
+            null,
+            $action,
+            $description,
+            $metadata
+        );
+    }
+
+    /**
+     * @param array<string, mixed> $metadata
+     */
     private function log(
         ?int $userId,
         string $entityType,

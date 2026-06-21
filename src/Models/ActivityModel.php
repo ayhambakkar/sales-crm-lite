@@ -29,6 +29,7 @@ class ActivityModel extends Model
     public const ACTION_PASSWORD_RESET = 'password_reset';
     public const ACTION_DEACTIVATED = 'deactivated';
     public const ACTION_ACTIVATED = 'activated';
+    public const ACTION_VIEWED_REPORT = 'viewed_report';
 
     public const DEFAULT_PER_PAGE = 20;
 
@@ -74,6 +75,7 @@ class ActivityModel extends Model
             self::ACTION_PASSWORD_RESET,
             self::ACTION_DEACTIVATED,
             self::ACTION_ACTIVATED,
+            self::ACTION_VIEWED_REPORT,
         ];
     }
 

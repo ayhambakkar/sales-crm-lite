@@ -40,6 +40,7 @@ class ActivityModuleTest extends TestCase
         $this->assertTrue(ActivityModel::isValidAction(ActivityModel::ACTION_PASSWORD_RESET));
         $this->assertTrue(ActivityModel::isValidAction(ActivityModel::ACTION_DEACTIVATED));
         $this->assertTrue(ActivityModel::isValidAction(ActivityModel::ACTION_ACTIVATED));
+        $this->assertTrue(ActivityModel::isValidAction(ActivityModel::ACTION_VIEWED_REPORT));
         $this->assertFalse(ActivityModel::isValidAction('exported'));
     }
 

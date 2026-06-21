@@ -33,6 +33,11 @@ $router->get('/activities',      'ActivityController', 'index', ['auth']);
 $router->get('/activities/{id}', 'ActivityController', 'show',  ['auth']);
 
 // -----------------------------------------------------------------------------
+// Reports — Phase 2.2
+// -----------------------------------------------------------------------------
+$router->get('/reports', 'ReportController', 'index', ['auth']);
+
+// -----------------------------------------------------------------------------
 // User Management — Milestone 1.3
 // -----------------------------------------------------------------------------
 $router->get( '/users',                     'UserController', 'index',         ['auth', 'admin']);
