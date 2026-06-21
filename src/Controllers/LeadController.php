@@ -7,10 +7,12 @@ namespace App\Controllers;
 use App\Core\Auth;
 use App\Core\Controller;
 use App\Core\Session;
+use App\Models\ActivityModel;
 use App\Models\CustomerModel;
 use App\Models\FollowUpModel;
 use App\Models\LeadModel;
 use App\Models\UserModel;
+use App\Services\ActivityLogger;
 use RuntimeException;
 use Throwable;
 
@@ -20,6 +22,8 @@ class LeadController extends Controller
     private CustomerModel $customers;
     private FollowUpModel $followUps;
     private UserModel $users;
+    private ActivityModel $activities;
+    private ActivityLogger $activityLogger;
 
     public function __construct()
     {
@@ -27,6 +31,8 @@ class LeadController extends Controller
         $this->customers = new CustomerModel();
         $this->followUps = new FollowUpModel();
         $this->users = new UserModel();
+        $this->activities = new ActivityModel();
+        $this->activityLogger = new ActivityLogger();
     }
 
     public function index(): void
@@ -94,6 +100,17 @@ class LeadController extends Controller
 
         $leadId = $this->leads->create($input);
 
+        $this->activityLogger->logLeadAction(
+            ActivityModel::ACTION_CREATED,
+            $leadId,
+            'Created lead ' . $input['first_name'] . ' ' . $input['last_name'] . '.',
+            [
+                'assigned_user_id' => $input['assigned_user_id'],
+                'status' => $input['status'],
+                'priority' => $input['priority'],
+            ]
+        );
+
         Session::flash('success', 'Lead created successfully.');
         $this->redirect('/leads/' . $leadId);
     }
@@ -109,6 +126,7 @@ class LeadController extends Controller
             'currentUser' => $user,
             'canConvert' => LeadModel::canConvert($lead),
             'followUps' => $this->followUps->listForLead((int) $lead['id'], $user),
+            'activityItems' => $this->activities->forEntity(ActivityModel::ENTITY_LEAD, (int) $lead['id'], $user, 5),
         ]);
     }
 
@@ -149,6 +167,19 @@ class LeadController extends Controller
 
         $this->leads->update((int) $lead['id'], $input);
 
+        $this->activityLogger->logLeadAction(
+            ActivityModel::ACTION_UPDATED,
+            (int) $lead['id'],
+            'Updated lead ' . $input['first_name'] . ' ' . $input['last_name'] . '.',
+            [
+                'assigned_user_id' => $input['assigned_user_id'],
+                'status' => $input['status'],
+                'priority' => $input['priority'],
+                'previous_status' => $lead['status'],
+                'previous_priority' => $lead['priority'],
+            ]
+        );
+
         Session::flash('success', 'Lead updated successfully.');
         $this->redirect('/leads/' . (int) $lead['id']);
     }
@@ -156,8 +187,20 @@ class LeadController extends Controller
     public function destroy(string $id): void
     {
         $lead = $this->findLeadOrFail($id);
+        $user = $this->currentUser();
 
-        $this->leads->delete((int) $lead['id'], $this->currentUser());
+        $this->leads->delete((int) $lead['id'], $user);
+
+        $this->activityLogger->logLeadAction(
+            ActivityModel::ACTION_DELETED,
+            (int) $lead['id'],
+            'Deleted lead ' . $lead['first_name'] . ' ' . $lead['last_name'] . '.',
+            [
+                'assigned_user_id' => $lead['assigned_user_id'],
+                'status' => $lead['status'],
+                'email' => $lead['email'] ?? null,
+            ]
+        );
 
         Session::flash('success', 'Lead deleted successfully.');
         $this->redirect('/leads');
@@ -196,6 +239,28 @@ class LeadController extends Controller
             }
 
             $this->leads->commit();
+
+            $this->activityLogger->logCustomerAction(
+                ActivityModel::ACTION_CREATED,
+                $customerId,
+                'Created customer from lead ' . $lead['first_name'] . ' ' . $lead['last_name'] . '.',
+                [
+                    'lead_id' => (int) $lead['id'],
+                    'assigned_user_id' => $lead['assigned_user_id'],
+                ],
+                (int) $user['id']
+            );
+
+            $this->activityLogger->logLeadAction(
+                ActivityModel::ACTION_CONVERTED,
+                (int) $lead['id'],
+                'Converted lead to customer #' . $customerId . '.',
+                [
+                    'customer_id' => $customerId,
+                    'assigned_user_id' => $lead['assigned_user_id'],
+                ],
+                (int) $user['id']
+            );
 
             Session::flash('success', 'Lead converted to customer successfully.');
             $this->redirect('/customers/' . $customerId);

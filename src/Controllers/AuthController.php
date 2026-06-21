@@ -9,8 +9,10 @@ use App\Core\Config;
 use App\Core\Controller;
 use App\Core\Logger;
 use App\Core\Session;
+use App\Models\ActivityModel;
 use App\Models\FailedLoginModel;
 use App\Models\UserModel;
+use App\Services\ActivityLogger;
 use Throwable;
 
 class AuthController extends Controller
@@ -20,11 +22,13 @@ class AuthController extends Controller
 
     private UserModel $users;
     private FailedLoginModel $failedLogins;
+    private ActivityLogger $activityLogger;
 
     public function __construct()
     {
         $this->users        = new UserModel();
         $this->failedLogins = new FailedLoginModel();
+        $this->activityLogger = new ActivityLogger();
     }
 
     /** GET /login */
@@ -105,6 +109,16 @@ class AuthController extends Controller
             $this->handleAuthException($exception);
         }
 
+        $this->activityLogger->logAuthAction(
+            ActivityModel::ACTION_LOGGED_IN,
+            (int) $user['id'],
+            'User logged in.',
+            [
+                'email' => $user['email'],
+                'ip_address' => $ip,
+            ]
+        );
+
         Auth::login($user);
         $this->redirect('/');
     }
@@ -128,6 +142,17 @@ class AuthController extends Controller
     /** POST /logout */
     public function logout(): void
     {
+        $user = Auth::user();
+
+        if ($user !== null) {
+            $this->activityLogger->logAuthAction(
+                ActivityModel::ACTION_LOGGED_OUT,
+                (int) $user['id'],
+                'User logged out.',
+                ['email' => $user['email'] ?? null]
+            );
+        }
+
         Auth::logout();
         $this->redirect('/login');
     }

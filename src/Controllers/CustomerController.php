@@ -7,21 +7,27 @@ namespace App\Controllers;
 use App\Core\Auth;
 use App\Core\Controller;
 use App\Core\Session;
+use App\Models\ActivityModel;
 use App\Models\CustomerModel;
 use App\Models\FollowUpModel;
 use App\Models\UserModel;
+use App\Services\ActivityLogger;
 
 class CustomerController extends Controller
 {
     private CustomerModel $customers;
     private FollowUpModel $followUps;
     private UserModel $users;
+    private ActivityModel $activities;
+    private ActivityLogger $activityLogger;
 
     public function __construct()
     {
         $this->customers = new CustomerModel();
         $this->followUps = new FollowUpModel();
         $this->users = new UserModel();
+        $this->activities = new ActivityModel();
+        $this->activityLogger = new ActivityLogger();
     }
 
     public function index(): void
@@ -86,6 +92,16 @@ class CustomerController extends Controller
 
         $customerId = $this->customers->create($input);
 
+        $this->activityLogger->logCustomerAction(
+            ActivityModel::ACTION_CREATED,
+            $customerId,
+            'Created customer ' . $input['first_name'] . ' ' . $input['last_name'] . '.',
+            [
+                'assigned_user_id' => $input['assigned_user_id'],
+                'customer_status' => $input['customer_status'],
+            ]
+        );
+
         Session::flash('success', 'Customer created successfully.');
         $this->redirect('/customers/' . $customerId);
     }
@@ -100,6 +116,7 @@ class CustomerController extends Controller
             'customer' => $customer,
             'currentUser' => $user,
             'followUps' => $this->followUps->listForCustomer((int) $customer['id'], $user),
+            'activityItems' => $this->activities->forEntity(ActivityModel::ENTITY_CUSTOMER, (int) $customer['id'], $user, 5),
         ]);
     }
 
@@ -138,6 +155,17 @@ class CustomerController extends Controller
 
         $this->customers->update((int) $customer['id'], $input);
 
+        $this->activityLogger->logCustomerAction(
+            ActivityModel::ACTION_UPDATED,
+            (int) $customer['id'],
+            'Updated customer ' . $input['first_name'] . ' ' . $input['last_name'] . '.',
+            [
+                'assigned_user_id' => $input['assigned_user_id'],
+                'customer_status' => $input['customer_status'],
+                'previous_customer_status' => $customer['customer_status'],
+            ]
+        );
+
         Session::flash('success', 'Customer updated successfully.');
         $this->redirect('/customers/' . (int) $customer['id']);
     }
@@ -145,8 +173,20 @@ class CustomerController extends Controller
     public function destroy(string $id): void
     {
         $customer = $this->findCustomerOrFail($id);
+        $user = $this->currentUser();
 
-        $this->customers->delete((int) $customer['id'], $this->currentUser());
+        $this->customers->delete((int) $customer['id'], $user);
+
+        $this->activityLogger->logCustomerAction(
+            ActivityModel::ACTION_DELETED,
+            (int) $customer['id'],
+            'Deleted customer ' . $customer['first_name'] . ' ' . $customer['last_name'] . '.',
+            [
+                'assigned_user_id' => $customer['assigned_user_id'],
+                'customer_status' => $customer['customer_status'],
+                'email' => $customer['email'] ?? null,
+            ]
+        );
 
         Session::flash('success', 'Customer deleted successfully.');
         $this->redirect('/customers');

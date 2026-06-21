@@ -40,7 +40,7 @@ class DashboardModuleTest extends TestCase
 
     public function testDashboardModelMethodsExist(): void
     {
-        foreach (['overview', 'stats', 'latestLeads', 'latestCustomers', 'recentConversions', 'upcomingFollowUps'] as $method) {
+        foreach (['overview', 'stats', 'latestLeads', 'latestCustomers', 'recentConversions', 'upcomingFollowUps', 'latestActivities'] as $method) {
             $this->assertTrue(method_exists(DashboardModel::class, $method), $method);
         }
     }

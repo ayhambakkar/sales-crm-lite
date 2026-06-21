@@ -7,15 +7,19 @@ namespace App\Controllers;
 use App\Core\Auth;
 use App\Core\Controller;
 use App\Core\Session;
+use App\Models\ActivityModel;
 use App\Models\UserModel;
+use App\Services\ActivityLogger;
 
 class UserController extends Controller
 {
     private UserModel $users;
+    private ActivityLogger $activityLogger;
 
     public function __construct()
     {
         $this->users = new UserModel();
+        $this->activityLogger = new ActivityLogger();
     }
 
     public function index(): void
@@ -54,7 +58,17 @@ class UserController extends Controller
             return;
         }
 
-        $this->users->createUser($input);
+        $userId = $this->users->createUser($input);
+
+        $this->activityLogger->logUserAction(
+            ActivityModel::ACTION_CREATED,
+            $userId,
+            'Created user ' . $input['email'] . '.',
+            [
+                'email' => $input['email'],
+                'role' => $input['role'],
+            ]
+        );
 
         Session::flash('success', 'User created successfully.');
         $this->redirect('/users');
@@ -104,6 +118,18 @@ class UserController extends Controller
 
         $this->users->updateProfile($userId, $input);
 
+        $this->activityLogger->logUserAction(
+            ActivityModel::ACTION_UPDATED,
+            $userId,
+            'Updated user ' . $input['email'] . '.',
+            [
+                'email' => $input['email'],
+                'role' => $input['role'],
+                'previous_email' => $user['email'],
+                'previous_role' => $user['role'],
+            ]
+        );
+
         Session::flash('success', 'User updated successfully.');
         $this->redirect('/users');
     }
@@ -125,6 +151,13 @@ class UserController extends Controller
 
         $this->users->deactivate($userId);
 
+        $this->activityLogger->logUserAction(
+            ActivityModel::ACTION_DEACTIVATED,
+            $userId,
+            'Deactivated user ' . $user['email'] . '.',
+            ['email' => $user['email']]
+        );
+
         Session::flash('success', 'User deactivated successfully.');
         $this->redirect('/users');
     }
@@ -134,6 +167,13 @@ class UserController extends Controller
         $user = $this->findUserOrFail($id);
 
         $this->users->activate((int) $user['id']);
+
+        $this->activityLogger->logUserAction(
+            ActivityModel::ACTION_ACTIVATED,
+            (int) $user['id'],
+            'Activated user ' . $user['email'] . '.',
+            ['email' => $user['email']]
+        );
 
         Session::flash('success', 'User activated successfully.');
         $this->redirect('/users');
@@ -164,6 +204,13 @@ class UserController extends Controller
         }
 
         $this->users->resetPasswordHash((int) $user['id'], UserModel::hashPassword($password));
+
+        $this->activityLogger->logUserAction(
+            ActivityModel::ACTION_PASSWORD_RESET,
+            (int) $user['id'],
+            'Reset password for user ' . $user['email'] . '.',
+            ['email' => $user['email']]
+        );
 
         Session::flash('success', 'Password reset successfully.');
         $this->redirect('/users/' . (int) $user['id'] . '/edit');

@@ -81,5 +81,11 @@
     <?php
         $createFollowUpUrl = '/follow-ups/create?customer_id=' . (int) $customer['id'];
         include APP_ROOT . '/src/Views/partials/follow-up-list.php';
+
+        $activityTitle = 'Customer Activity';
+        $activityDescription = 'Latest audit entries recorded for this customer.';
+        $activityEmpty = 'No activity has been recorded for this customer yet.';
+        $activityViewAllUrl = '/activities?entity_type=customer';
+        include APP_ROOT . '/src/Views/partials/activity-list.php';
     ?>
 </section>

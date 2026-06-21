@@ -7,10 +7,12 @@ namespace App\Controllers;
 use App\Core\Auth;
 use App\Core\Controller;
 use App\Core\Session;
+use App\Models\ActivityModel;
 use App\Models\CustomerModel;
 use App\Models\FollowUpModel;
 use App\Models\LeadModel;
 use App\Models\UserModel;
+use App\Services\ActivityLogger;
 use DateTimeImmutable;
 
 class FollowUpController extends Controller
@@ -19,6 +21,8 @@ class FollowUpController extends Controller
     private LeadModel $leads;
     private CustomerModel $customers;
     private UserModel $users;
+    private ActivityModel $activities;
+    private ActivityLogger $activityLogger;
 
     public function __construct()
     {
@@ -26,6 +30,8 @@ class FollowUpController extends Controller
         $this->leads = new LeadModel();
         $this->customers = new CustomerModel();
         $this->users = new UserModel();
+        $this->activities = new ActivityModel();
+        $this->activityLogger = new ActivityLogger();
     }
 
     public function index(): void
@@ -85,6 +91,20 @@ class FollowUpController extends Controller
 
         $followUpId = $this->followUps->create($input);
 
+        $this->activityLogger->logFollowUpAction(
+            ActivityModel::ACTION_CREATED,
+            $followUpId,
+            'Created follow-up ' . $input['title'] . '.',
+            [
+                'assigned_user_id' => $input['assigned_user_id'],
+                'lead_id' => $input['lead_id'],
+                'customer_id' => $input['customer_id'],
+                'status' => $input['status'],
+                'priority' => $input['priority'],
+                'due_at' => $input['due_at'],
+            ]
+        );
+
         Session::flash('success', 'Follow-up created successfully.');
         $this->redirect('/follow-ups/' . $followUpId);
     }
@@ -97,6 +117,7 @@ class FollowUpController extends Controller
             'title' => 'Follow-Up Details',
             'followUp' => $followUp,
             'currentUser' => $this->currentUser(),
+            'activityItems' => $this->activities->forEntity(ActivityModel::ENTITY_FOLLOW_UP, (int) $followUp['id'], $this->currentUser(), 5),
         ]);
     }
 
@@ -129,6 +150,22 @@ class FollowUpController extends Controller
 
         $this->followUps->update((int) $followUp['id'], $input);
 
+        $this->activityLogger->logFollowUpAction(
+            ActivityModel::ACTION_UPDATED,
+            (int) $followUp['id'],
+            'Updated follow-up ' . $input['title'] . '.',
+            [
+                'assigned_user_id' => $input['assigned_user_id'],
+                'lead_id' => $input['lead_id'],
+                'customer_id' => $input['customer_id'],
+                'status' => $input['status'],
+                'priority' => $input['priority'],
+                'previous_status' => $followUp['status'],
+                'previous_priority' => $followUp['priority'],
+                'due_at' => $input['due_at'],
+            ]
+        );
+
         Session::flash('success', 'Follow-up updated successfully.');
         $this->redirect('/follow-ups/' . (int) $followUp['id']);
     }
@@ -137,6 +174,16 @@ class FollowUpController extends Controller
     {
         $followUp = $this->findFollowUpOrFail($id);
         $this->followUps->markDone((int) $followUp['id'], $this->currentUser());
+
+        $this->activityLogger->logFollowUpAction(
+            ActivityModel::ACTION_COMPLETED,
+            (int) $followUp['id'],
+            'Marked follow-up ' . $followUp['title'] . ' as done.',
+            [
+                'assigned_user_id' => $followUp['assigned_user_id'],
+                'previous_status' => $followUp['status'],
+            ]
+        );
 
         Session::flash('success', 'Follow-up marked as done.');
         $this->redirect('/follow-ups/' . (int) $followUp['id']);
@@ -147,6 +194,16 @@ class FollowUpController extends Controller
         $followUp = $this->findFollowUpOrFail($id);
         $this->followUps->markCancelled((int) $followUp['id'], $this->currentUser());
 
+        $this->activityLogger->logFollowUpAction(
+            ActivityModel::ACTION_CANCELLED,
+            (int) $followUp['id'],
+            'Cancelled follow-up ' . $followUp['title'] . '.',
+            [
+                'assigned_user_id' => $followUp['assigned_user_id'],
+                'previous_status' => $followUp['status'],
+            ]
+        );
+
         Session::flash('success', 'Follow-up cancelled.');
         $this->redirect('/follow-ups/' . (int) $followUp['id']);
     }
@@ -154,7 +211,22 @@ class FollowUpController extends Controller
     public function destroy(string $id): void
     {
         $followUp = $this->findFollowUpOrFail($id);
-        $this->followUps->delete((int) $followUp['id'], $this->currentUser());
+        $user = $this->currentUser();
+
+        $this->followUps->delete((int) $followUp['id'], $user);
+
+        $this->activityLogger->logFollowUpAction(
+            ActivityModel::ACTION_DELETED,
+            (int) $followUp['id'],
+            'Deleted follow-up ' . $followUp['title'] . '.',
+            [
+                'assigned_user_id' => $followUp['assigned_user_id'],
+                'lead_id' => $followUp['lead_id'],
+                'customer_id' => $followUp['customer_id'],
+                'status' => $followUp['status'],
+                'priority' => $followUp['priority'],
+            ]
+        );
 
         Session::flash('success', 'Follow-up deleted successfully.');
         $this->redirect('/follow-ups');

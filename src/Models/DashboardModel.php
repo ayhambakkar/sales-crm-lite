@@ -94,7 +94,8 @@ class DashboardModel extends Model
      *     latest_leads: array<int, array<string, mixed>>,
      *     latest_customers: array<int, array<string, mixed>>,
      *     recent_conversions: array<int, array<string, mixed>>,
-     *     upcoming_follow_ups: array<int, array<string, mixed>>
+     *     upcoming_follow_ups: array<int, array<string, mixed>>,
+     *     latest_activities: array<int, array<string, mixed>>
      * }
      */
     public function overview(array $user): array
@@ -105,6 +106,7 @@ class DashboardModel extends Model
             'latest_customers' => $this->latestCustomers($user),
             'recent_conversions' => $this->recentConversions($user),
             'upcoming_follow_ups' => $this->upcomingFollowUps($user),
+            'latest_activities' => $this->latestActivities($user),
         ];
     }
 
@@ -216,6 +218,15 @@ class DashboardModel extends Model
                 LIMIT ' . max(1, min(10, $limit));
 
         return $this->findAll($sql, $params);
+    }
+
+    /**
+     * @param array<string, mixed> $user
+     * @return array<int, array<string, mixed>>
+     */
+    public function latestActivities(array $user, int $limit = 5): array
+    {
+        return (new ActivityModel())->latest($user, $limit);
     }
 
     /**

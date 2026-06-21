@@ -35,6 +35,7 @@ The current MVP supports authentication, admin user management, leads, customers
 - Customers module with CRUD, search, filters, sorting, pagination, and assignment scoping.
 - Follow-Up Tasks module for leads and customers with open, done, cancelled, overdue, priority, due date, search, filters, sorting, and pagination.
 - Dashboard KPIs for leads, customers, pipeline value, conversion rate, overdue follow-ups, due-today follow-ups, recent records, and upcoming tasks.
+- Activity log and audit trail for important auth, user, lead, customer, conversion, and follow-up actions.
 - Tailwind-based SaaS UI foundation with app layout, guest layout, navigation, tables, forms, flash messages, badges, and pagination.
 - PHPUnit coverage for the foundation, auth hardening, user management, leads, customers, conversion, dashboard, and follow-ups.
 
@@ -47,13 +48,12 @@ The current MVP supports authentication, admin user management, leads, customers
 
 ## Phase 2 Roadmap
 
-- Activity log and audit trail.
 - Reporting views and charts.
 - CSV export for CRM lists and reports.
 - More advanced permissions and team workflows.
 - Production deployment hardening and hosted demo.
 
-The app does not currently include SaaS tenants, activity logging, reporting, CSV export, or dark mode.
+The app does not currently include SaaS tenants, reporting, CSV export, or dark mode.
 
 ## Prerequisites
 

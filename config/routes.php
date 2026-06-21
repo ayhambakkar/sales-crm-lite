@@ -27,6 +27,12 @@ $router->post('/logout', 'AuthController', 'logout',  ['auth', 'csrf']);
 $router->get('/', 'DashboardController', 'index', ['auth']);
 
 // -----------------------------------------------------------------------------
+// Activity Log — Phase 2.1
+// -----------------------------------------------------------------------------
+$router->get('/activities',      'ActivityController', 'index', ['auth']);
+$router->get('/activities/{id}', 'ActivityController', 'show',  ['auth']);
+
+// -----------------------------------------------------------------------------
 // User Management — Milestone 1.3
 // -----------------------------------------------------------------------------
 $router->get( '/users',                     'UserController', 'index',         ['auth', 'admin']);

@@ -106,4 +106,12 @@
             </form>
         </div>
     </div>
+
+    <?php
+        $activityTitle = 'Follow-Up Activity';
+        $activityDescription = 'Latest audit entries recorded for this follow-up.';
+        $activityEmpty = 'No activity has been recorded for this follow-up yet.';
+        $activityViewAllUrl = '/activities?entity_type=follow_up';
+        include APP_ROOT . '/src/Views/partials/activity-list.php';
+    ?>
 </section>

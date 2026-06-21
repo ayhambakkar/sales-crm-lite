@@ -4,6 +4,7 @@
     $latest_customers = $latest_customers ?? [];
     $recent_conversions = $recent_conversions ?? [];
     $upcoming_follow_ups = $upcoming_follow_ups ?? [];
+    $latest_activities = $latest_activities ?? [];
     $scopeLabel = ($currentUser['role'] ?? '') === 'admin'
         ? 'Global CRM overview'
         : 'Your assigned CRM records';
@@ -157,6 +158,15 @@
         </div>
     <?php endif; ?>
 </section>
+
+<?php
+    $activityItems = $latest_activities;
+    $activityTitle = 'Recent Activity';
+    $activityDescription = 'Latest audit entries in your dashboard scope.';
+    $activityEmpty = 'No recent activity has been recorded yet.';
+    $activityViewAllUrl = '/activities';
+    include APP_ROOT . '/src/Views/partials/activity-list.php';
+?>
 
 <section class="mt-6 grid gap-6 xl:grid-cols-2">
     <div class="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">

@@ -107,5 +107,11 @@
     <?php
         $createFollowUpUrl = '/follow-ups/create?lead_id=' . (int) $lead['id'];
         include APP_ROOT . '/src/Views/partials/follow-up-list.php';
+
+        $activityTitle = 'Lead Activity';
+        $activityDescription = 'Latest audit entries recorded for this lead.';
+        $activityEmpty = 'No activity has been recorded for this lead yet.';
+        $activityViewAllUrl = '/activities?entity_type=lead';
+        include APP_ROOT . '/src/Views/partials/activity-list.php';
     ?>
 </section>
