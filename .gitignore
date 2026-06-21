@@ -72,3 +72,7 @@ composer.phar
 *.log
 *.cache
 *.tmp
+
+# Local/generated temporary files
+output/
+tmp/

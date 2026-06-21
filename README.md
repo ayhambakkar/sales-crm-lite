@@ -1,17 +1,81 @@
 # Sales CRM Lite
 
-> A lightweight, single-tenant CRM for small sales teams, built with custom PHP 8.2 MVC, MySQL, and Tailwind CSS.
+> A lightweight CRM for small sales teams, built with custom PHP 8.2 MVC, MySQL/MariaDB, and Tailwind CSS.
 
 ![PHP](https://img.shields.io/badge/PHP-8.2+-777BB4?style=flat-square&logo=php&logoColor=white)
-![MySQL](https://img.shields.io/badge/MySQL-8.0+-4479A1?style=flat-square&logo=mysql&logoColor=white)
+![MySQL](https://img.shields.io/badge/MySQL%2FMariaDB-supported-4479A1?style=flat-square&logo=mysql&logoColor=white)
 ![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-3.x-06B6D4?style=flat-square&logo=tailwindcss&logoColor=white)
-![Status](https://img.shields.io/badge/status-MVP-green?style=flat-square)
+![PHPUnit](https://img.shields.io/badge/tests-PHPUnit-8892BF?style=flat-square)
+![Status](https://img.shields.io/badge/status-portfolio_MVP-green?style=flat-square)
 
-## Project Overview
+Sales CRM Lite is a portfolio-grade CRM application that demonstrates secure, maintainable PHP application architecture without a framework. It includes authentication, role-based access, user management, CRM modules, reporting, exports, audit logging, Tailwind UI, automated tests, and production deployment documentation.
 
-Sales CRM Lite is a portfolio-grade CRM application that demonstrates how to build a secure, maintainable PHP application without a framework. It uses a front controller, custom router, middleware, controllers, PDO models, PHP views, and Tailwind CSS.
+The project is intentionally single-tenant and framework-free so the core application architecture is visible: front controller, custom router, middleware, controllers, PDO models, PHP views, service helpers, SQL migrations, and PHPUnit coverage.
 
-The current MVP supports authentication, admin user management, leads, customers, lead-to-customer conversion, follow-up tasks, and a scoped CRM dashboard. It is intentionally single-tenant for now.
+## Feature Overview
+
+| Area | Implemented |
+| --- | --- |
+| Authentication | Login, logout, bcrypt password hashes, CSRF protection, session regeneration, hardened logout |
+| Auth hardening | Database-backed failed login throttling, last-login tracking, password rehash lifecycle |
+| Roles | `admin` and `sales_rep` role behavior with scoped CRM visibility |
+| User management | Admin-only user list, create, edit, activate/deactivate, password reset |
+| Leads | CRUD, assignment, status, priority, search, filters, sorting, pagination |
+| Lead conversion | Transaction-safe lead-to-customer conversion with conversion tracking |
+| Customers | CRUD, assignment, status, search, filters, sorting, pagination |
+| Follow-ups | Lead/customer tasks, due dates, overdue states, completion/cancellation, filters |
+| Dashboard | Scoped CRM KPIs, recent records, upcoming follow-ups |
+| Activity log | Immutable audit trail for important auth and CRM actions |
+| Reports | Scoped CRM summary insights and admin sales rep performance table |
+| CSV exports | Leads, customers, follow-ups, activities, and report summary exports |
+| UI | Tailwind-based SaaS-style app shell, tables, forms, badges, pagination, flash messages |
+| Deployment | Production checklist, Ubuntu/Nginx/PHP-FPM/MySQL docs, HTTPS guidance |
+
+## Screenshots
+
+Screenshots are intentionally kept as placeholders until final portfolio captures are added. Recommended paths:
+
+| View | Placeholder path |
+| --- | --- |
+| Dashboard KPIs | `docs/assets/screenshots/dashboard.png` |
+| Leads listing | `docs/assets/screenshots/leads-index.png` |
+| Lead detail and conversion | `docs/assets/screenshots/lead-detail.png` |
+| Customers listing | `docs/assets/screenshots/customers-index.png` |
+| Follow-ups board/list | `docs/assets/screenshots/follow-ups-index.png` |
+| Activity log | `docs/assets/screenshots/activity-log.png` |
+| Reports | `docs/assets/screenshots/reports.png` |
+| Login | `docs/assets/screenshots/login.png` |
+
+See [docs/screenshots.md](docs/screenshots.md) for the capture checklist.
+
+## Architecture Overview
+
+Sales CRM Lite uses a custom MVC structure:
+
+- [public/index.php](public/index.php) is the front controller for every request.
+- [config/routes.php](config/routes.php) registers route definitions and middleware tags.
+- [src/Core/Router.php](src/Core/Router.php) matches HTTP method + URI patterns and dispatches controllers.
+- [src/Controllers](src/Controllers) keeps request handling, validation coordination, redirects, and view rendering.
+- [src/Models](src/Models) owns SQL queries and uses PDO prepared statements.
+- [src/Views](src/Views) contains plain PHP views, layouts, and partials.
+- [src/Middleware](src/Middleware) enforces authentication and CSRF checks.
+- [src/Services](src/Services) contains small cross-cutting helpers such as activity logging.
+
+Role scoping is enforced server-side. Admin users can access global CRM data; sales reps are limited to assigned records where applicable. See [docs/architecture.md](docs/architecture.md) for a concise architecture walkthrough.
+
+## Security Highlights
+
+- Passwords use PHP password hashing APIs with bcrypt-compatible hashes.
+- `password_needs_rehash()` is handled during successful login.
+- Session IDs regenerate on login.
+- Logout destroys the server-side session and expires the browser cookie.
+- Session cookies are `HttpOnly`, `SameSite=Strict`, and Secure in production.
+- POST actions are protected by CSRF middleware.
+- SQL access uses PDO prepared statements.
+- Login throttling locks repeated failed attempts for 15 minutes.
+- Raw exceptions are hidden in production and logged to `storage/logs/app.log`.
+- Global security headers include frame, content-type, referrer, CSP, and production-only HSTS.
+- Password hashes and sensitive secrets are not exposed in views or exports.
 
 ## Tech Stack
 
@@ -23,60 +87,18 @@ The current MVP supports authentication, admin user management, leads, customers
 | Data access | PDO prepared statements |
 | Frontend | PHP views with Tailwind CSS |
 | Tooling | Composer, PHPUnit, npm, Tailwind CLI |
+| Deployment target | Ubuntu VPS, Nginx, PHP-FPM, MySQL/MariaDB, HTTPS |
 
-## Implemented Phase 1 Features
+## Quick Start
 
-- Authentication with login, logout, bcrypt password hashes, CSRF protection, session regeneration, and hardened logout.
-- Login throttling with database-backed failed login tracking.
-- Admin-only user management with create, edit, activate, deactivate, and password reset actions.
-- Role-based access for `admin` and `sales_rep` users.
-- Leads module with CRUD, search, filters, sorting, pagination, assignment scoping, status, priority, and estimated value.
-- Lead-to-customer conversion with transaction-safe customer creation and conversion tracking.
-- Customers module with CRUD, search, filters, sorting, pagination, and assignment scoping.
-- Follow-Up Tasks module for leads and customers with open, done, cancelled, overdue, priority, due date, search, filters, sorting, and pagination.
-- Dashboard KPIs for leads, customers, pipeline value, conversion rate, overdue follow-ups, due-today follow-ups, recent records, and upcoming tasks.
-- Activity log and audit trail for important auth, user, lead, customer, conversion, and follow-up actions.
-- Reporting module foundation with scoped CRM insights and admin sales rep performance.
-- CSV exports for leads, customers, follow-ups, activities, and report summary data.
-- Tailwind-based SaaS UI foundation with app layout, guest layout, navigation, tables, forms, flash messages, badges, and pagination.
-- PHPUnit coverage for the foundation, auth hardening, user management, leads, customers, conversion, dashboard, and follow-ups.
-
-## Role-Based Access
-
-- Admin users can manage users and can view, assign, edit, delete, and convert all CRM records.
-- Sales reps can view and manage only leads, customers, and follow-ups assigned to them.
-- The Users navigation item is visible only to admins.
-- Record scoping is enforced in controller/model logic, not only in the UI.
-
-## Phase 2 Roadmap
-
-- JavaScript charts for reporting views.
-- More advanced permissions and team workflows.
-- Hosted demo.
-
-The app does not currently include SaaS tenants, JavaScript charts, advanced reporting, or dark mode.
-
-## Prerequisites
+Prerequisites:
 
 - PHP 8.2 or higher
 - Composer
 - MySQL 8.0+ or MariaDB 10.6+
 - Node.js and npm
 
-## Fresh-Install Checklist
-
-1. `composer install`
-2. `npm install`
-3. `cp .env.example .env`
-4. Run migrations in order.
-5. Run seeders.
-6. `npm run build:css`
-7. `composer test`
-8. `php -S localhost:8000 -t public`
-
-## Installation
-
-Install PHP and frontend dependencies:
+Install dependencies:
 
 ```bash
 composer install
@@ -99,8 +121,6 @@ DB_USERNAME=root
 DB_PASSWORD=
 ```
 
-Add `-p` to the MySQL commands below if your local MySQL root user requires a password.
-
 ## Database Setup
 
 Create the database:
@@ -121,19 +141,21 @@ mysql -u root sales_crm < database/migrations/006_create_follow_ups_table.sql
 mysql -u root sales_crm < database/migrations/007_create_activities_table.sql
 ```
 
-Run the local admin seeder:
+Seed a local admin account:
 
 ```bash
 mysql -u root sales_crm < database/seeders/001_seed_admin_user.sql
 ```
 
-Load demo CRM data:
+Optional demo CRM data:
 
 ```bash
 mysql -u root sales_crm < database/seeders/002_seed_demo_crm_data.sql
 ```
 
-## Demo Login Credentials
+Add `-p` to the MySQL commands if your local MySQL user requires a password.
+
+## Demo Login
 
 Both demo accounts use the local development password `password`.
 
@@ -144,9 +166,9 @@ Both demo accounts use the local development password `password`.
 
 Change these credentials before using the app outside local development.
 
-## CSS Build
+## Build And Run
 
-Build the production stylesheet:
+Build the compiled Tailwind stylesheet:
 
 ```bash
 npm run build:css
@@ -158,11 +180,6 @@ Run the Tailwind watcher while editing UI files:
 npm run dev:css
 ```
 
-The compiled stylesheet is written to `public/assets/css/app.css`.
-The generated CSS file is ignored by Git and should be built during local setup or deployment.
-
-## Local Server
-
 Start the PHP development server:
 
 ```bash
@@ -171,48 +188,64 @@ php -S localhost:8000 -t public
 
 Open [http://localhost:8000](http://localhost:8000).
 
-## Tests
+The generated CSS file is written to `public/assets/css/app.css` and is ignored by Git.
 
-Run the test suite:
+## Tests And Quality
+
+Run the full test suite:
 
 ```bash
 composer test
 ```
 
-Additional scripts are available:
+Additional scripts:
 
 ```bash
 composer test:unit
 composer test:integration
 ```
 
+Current coverage focus:
+
+- Foundation/autoload smoke checks
+- Authentication hardening behavior
+- Role validation and admin safety rules
+- Lead, customer, follow-up validation and scoping helpers
+- Dashboard and report shape/scoping logic
+- Activity log validation and scoped access helpers
+- CSV export helpers and safe filenames
+- Production readiness checks
+
 ## Deployment
 
-For production, keep the web root pointed at `public/`; never expose the repository root directly.
+Production expectations:
 
-Use a production `.env` with:
+- Web root points to `public/`.
+- `APP_ENV=production`.
+- `APP_DEBUG=false`.
+- HTTPS is required.
+- `storage/logs` is writable by the PHP/web server user.
+- Dependencies are installed with `composer install --no-dev --optimize-autoloader`.
+- CSS is built with `npm run build:css`.
 
-```env
-APP_ENV=production
-APP_DEBUG=false
-APP_URL=https://your-crm.example.com
-```
+Deployment docs:
 
-Also set production database credentials with `DB_DATABASE`, `DB_USERNAME`, and `DB_PASSWORD`. Production errors are written to `storage/logs/app.log`; make sure `storage/logs` is writable by the PHP/web server user.
+- [docs/production-checklist.md](docs/production-checklist.md)
+- [docs/oracle-cloud-deployment.md](docs/oracle-cloud-deployment.md)
+- [docs/nginx-example.conf](docs/nginx-example.conf)
+- [docs/production-env-example.md](docs/production-env-example.md)
 
-Recommended production commands:
+## Documentation Map
 
-```bash
-composer install --no-dev --optimize-autoloader
-npm install
-npm run build:css
-```
-
-Run database migrations in the documented order before serving traffic. Use the demo seed data only for local demos or disposable portfolio environments, not for a real production database.
-
-HTTPS is required in production. When `APP_ENV=production`, session cookies are marked Secure and the app sends `Strict-Transport-Security`. The `/health` endpoint returns a minimal JSON status response and does not expose sensitive configuration.
-
-See [docs/production-checklist.md](docs/production-checklist.md) for the full deployment checklist and troubleshooting notes.
+| Document | Purpose |
+| --- | --- |
+| [docs/architecture.md](docs/architecture.md) | Concise current architecture overview |
+| [docs/screenshots.md](docs/screenshots.md) | Portfolio screenshot checklist |
+| [docs/database-design.md](docs/database-design.md) | Database design notes |
+| [docs/security-concept.md](docs/security-concept.md) | Security planning notes |
+| [docs/production-checklist.md](docs/production-checklist.md) | Production readiness checklist |
+| [docs/oracle-cloud-deployment.md](docs/oracle-cloud-deployment.md) | Ubuntu VPS deployment guide |
+| [docs/roadmap.md](docs/roadmap.md) | Project roadmap |
 
 ## Project Structure
 
@@ -222,6 +255,7 @@ sales-crm-lite/
 |-- database/
 |   |-- migrations/         Ordered SQL migrations
 |   `-- seeders/            Local and demo seed data
+|-- docs/                   Architecture, setup, deployment, screenshot notes
 |-- public/                 Web root and compiled assets
 |-- resources/css/          Tailwind source CSS
 |-- src/
@@ -229,6 +263,7 @@ sales-crm-lite/
 |   |-- Core/               Router, controller base, model base, auth, session, helpers
 |   |-- Middleware/         Auth and CSRF middleware
 |   |-- Models/             PDO model classes
+|   |-- Services/           Small service helpers
 |   `-- Views/              Layouts, partials, and module views
 |-- storage/logs/           App logs
 |-- tests/                  PHPUnit tests
@@ -237,15 +272,27 @@ sales-crm-lite/
 `-- tailwind.config.js
 ```
 
-## Security Notes
+## Release And Version
 
-- Passwords are stored with bcrypt hashes.
-- SQL access uses PDO prepared statements.
-- POST routes use CSRF middleware.
-- Login throttling locks repeated failed attempts for 15 minutes.
-- Authenticated sessions are regenerated on login and destroyed on logout.
-- Production-safe logging writes to `storage/logs/app.log`.
+Current portfolio release: `v1.0.0`.
+
+Included in this release:
+
+- MVP CRM workflow: leads, customers, follow-ups, conversion, dashboard.
+- Admin user management and role-based scoping.
+- Activity log, reporting foundation, and CSV exports.
+- Tailwind UI foundation.
+- Production readiness and Ubuntu VPS deployment documentation.
+- PHPUnit test suite.
+
+Planned future work:
+
+- JavaScript charts for reports.
+- More advanced permission/team workflows.
+- Hosted demo environment.
+
+Not currently included: SaaS tenants, dark mode, advanced charting, or payment/subscription features.
 
 ## License
 
-This project declares the MIT license in `composer.json`.
+This project declares the MIT license in [composer.json](composer.json).
