@@ -36,6 +36,8 @@ The current MVP supports authentication, admin user management, leads, customers
 - Follow-Up Tasks module for leads and customers with open, done, cancelled, overdue, priority, due date, search, filters, sorting, and pagination.
 - Dashboard KPIs for leads, customers, pipeline value, conversion rate, overdue follow-ups, due-today follow-ups, recent records, and upcoming tasks.
 - Activity log and audit trail for important auth, user, lead, customer, conversion, and follow-up actions.
+- Reporting module foundation with scoped CRM insights and admin sales rep performance.
+- CSV exports for leads, customers, follow-ups, activities, and report summary data.
 - Tailwind-based SaaS UI foundation with app layout, guest layout, navigation, tables, forms, flash messages, badges, and pagination.
 - PHPUnit coverage for the foundation, auth hardening, user management, leads, customers, conversion, dashboard, and follow-ups.
 
@@ -48,12 +50,11 @@ The current MVP supports authentication, admin user management, leads, customers
 
 ## Phase 2 Roadmap
 
-- Reporting views and charts.
-- CSV export for CRM lists and reports.
+- JavaScript charts for reporting views.
 - More advanced permissions and team workflows.
-- Production deployment hardening and hosted demo.
+- Hosted demo.
 
-The app does not currently include SaaS tenants, reporting, CSV export, or dark mode.
+The app does not currently include SaaS tenants, JavaScript charts, advanced reporting, or dark mode.
 
 ## Prerequisites
 
@@ -117,6 +118,7 @@ mysql -u root sales_crm < database/migrations/003_create_leads_table.sql
 mysql -u root sales_crm < database/migrations/004_create_customers_table.sql
 mysql -u root sales_crm < database/migrations/005_add_lead_conversion_fields.sql
 mysql -u root sales_crm < database/migrations/006_create_follow_ups_table.sql
+mysql -u root sales_crm < database/migrations/007_create_activities_table.sql
 ```
 
 Run the local admin seeder:
@@ -157,6 +159,7 @@ npm run dev:css
 ```
 
 The compiled stylesheet is written to `public/assets/css/app.css`.
+The generated CSS file is ignored by Git and should be built during local setup or deployment.
 
 ## Local Server
 
@@ -182,6 +185,34 @@ Additional scripts are available:
 composer test:unit
 composer test:integration
 ```
+
+## Deployment
+
+For production, keep the web root pointed at `public/`; never expose the repository root directly.
+
+Use a production `.env` with:
+
+```env
+APP_ENV=production
+APP_DEBUG=false
+APP_URL=https://your-crm.example.com
+```
+
+Also set production database credentials with `DB_DATABASE`, `DB_USERNAME`, and `DB_PASSWORD`. Production errors are written to `storage/logs/app.log`; make sure `storage/logs` is writable by the PHP/web server user.
+
+Recommended production commands:
+
+```bash
+composer install --no-dev --optimize-autoloader
+npm install
+npm run build:css
+```
+
+Run database migrations in the documented order before serving traffic. Use the demo seed data only for local demos or disposable portfolio environments, not for a real production database.
+
+HTTPS is required in production. When `APP_ENV=production`, session cookies are marked Secure and the app sends `Strict-Transport-Security`. The `/health` endpoint returns a minimal JSON status response and does not expose sensitive configuration.
+
+See [docs/production-checklist.md](docs/production-checklist.md) for the full deployment checklist and troubleshooting notes.
 
 ## Project Structure
 

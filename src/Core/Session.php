@@ -16,16 +16,7 @@ class Session
             return;
         }
 
-        $secure = Config::get('APP_ENV') === 'production';
-
-        session_set_cookie_params([
-            'lifetime' => 0,               // until browser close
-            'path'     => '/',
-            'domain'   => '',
-            'secure'   => $secure,         // HTTPS-only in production
-            'httponly' => true,            // not accessible via JavaScript
-            'samesite' => 'Strict',        // no cross-site submission
-        ]);
+        session_set_cookie_params(self::cookieOptions());
 
         ini_set('session.use_strict_mode',  '1');
         ini_set('session.use_only_cookies', '1');
@@ -34,6 +25,23 @@ class Session
         session_name($name);
 
         session_start();
+    }
+
+    /**
+     * Centralized cookie policy used for production readiness checks.
+     *
+     * @return array<string, bool|int|string>
+     */
+    public static function cookieOptions(): array
+    {
+        return [
+            'lifetime' => 0,                                      // until browser close
+            'path'     => '/',
+            'domain'   => '',
+            'secure'   => Config::get('APP_ENV') === 'production', // HTTPS-only in production
+            'httponly' => true,                                   // not accessible via JavaScript
+            'samesite' => 'Strict',                               // no cross-site submission
+        ];
     }
 
     /** Read a value from the session. */

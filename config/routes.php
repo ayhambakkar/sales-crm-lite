@@ -22,6 +22,11 @@ $router->post('/login',  'AuthController', 'login',   ['csrf']);
 $router->post('/logout', 'AuthController', 'logout',  ['auth', 'csrf']);
 
 // -----------------------------------------------------------------------------
+// Health Check
+// -----------------------------------------------------------------------------
+$router->get('/health', 'HealthController', 'show');
+
+// -----------------------------------------------------------------------------
 // Dashboard — Milestone 1.7
 // -----------------------------------------------------------------------------
 $router->get('/', 'DashboardController', 'index', ['auth']);

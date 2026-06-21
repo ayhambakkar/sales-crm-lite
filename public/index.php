@@ -65,7 +65,22 @@ set_exception_handler(static function (\Throwable $exception): void {
 header('X-Frame-Options: DENY');
 header('X-Content-Type-Options: nosniff');
 header('Referrer-Policy: strict-origin-when-cross-origin');
-header('X-XSS-Protection: 1; mode=block');
+header('X-XSS-Protection: 0');
+
+$contentSecurityPolicy = [
+    "default-src 'self'",
+    "base-uri 'self'",
+    "form-action 'self'",
+    "frame-ancestors 'none'",
+    "object-src 'none'",
+    "img-src 'self' data:",
+    "font-src 'self' data:",
+    "style-src 'self' 'unsafe-inline'",
+    "script-src 'self'",
+    "connect-src 'self'",
+];
+
+header('Content-Security-Policy: ' . implode('; ', $contentSecurityPolicy));
 
 if (\App\Core\Config::get('APP_ENV') === 'production') {
     header('Strict-Transport-Security: max-age=31536000; includeSubDomains');
