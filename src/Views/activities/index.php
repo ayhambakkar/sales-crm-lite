@@ -28,6 +28,7 @@
         $pageDescription = ($currentUser['role'] ?? '') === 'admin'
             ? 'Audit trail for important CRM actions.'
             : 'Your activity and activity on CRM records assigned to you.';
+        $pageActions = '<a href="/exports/activities.csv" class="rounded-lg border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50">Export CSV</a>';
         include APP_ROOT . '/src/Views/partials/page-header.php';
     ?>
 

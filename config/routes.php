@@ -38,6 +38,15 @@ $router->get('/activities/{id}', 'ActivityController', 'show',  ['auth']);
 $router->get('/reports', 'ReportController', 'index', ['auth']);
 
 // -----------------------------------------------------------------------------
+// CSV Exports — Phase 2.3
+// -----------------------------------------------------------------------------
+$router->get('/exports/leads.csv',           'ExportController', 'leads',         ['auth']);
+$router->get('/exports/customers.csv',       'ExportController', 'customers',     ['auth']);
+$router->get('/exports/follow-ups.csv',      'ExportController', 'followUps',     ['auth']);
+$router->get('/exports/activities.csv',      'ExportController', 'activities',    ['auth']);
+$router->get('/exports/reports/summary.csv', 'ExportController', 'reportSummary', ['auth']);
+
+// -----------------------------------------------------------------------------
 // User Management — Milestone 1.3
 // -----------------------------------------------------------------------------
 $router->get( '/users',                     'UserController', 'index',         ['auth', 'admin']);

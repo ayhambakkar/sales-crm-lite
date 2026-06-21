@@ -28,7 +28,8 @@
 
         $pageTitle = 'Follow-Ups';
         $pageDescription = 'Track scheduled next steps for leads and customers.';
-        $pageActions = '<a href="/follow-ups/create" class="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-700">Create Follow-Up</a>';
+        $pageActions = '<a href="/exports/follow-ups.csv" class="rounded-lg border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50">Export CSV</a>'
+            . '<a href="/follow-ups/create" class="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-700">Create Follow-Up</a>';
         include APP_ROOT . '/src/Views/partials/page-header.php';
     ?>
 

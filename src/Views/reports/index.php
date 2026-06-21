@@ -6,6 +6,7 @@
 
         $pageTitle = 'Reports';
         $pageDescription = $scopeLabel . ' with pipeline, conversion, customer, and follow-up insights.';
+        $pageActions = '<a href="/exports/reports/summary.csv" class="rounded-lg border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50">Export Summary CSV</a>';
         include APP_ROOT . '/src/Views/partials/page-header.php';
 
         $formatPercent = static fn (float|int $value): string => number_format((float) $value, 1) . '%';

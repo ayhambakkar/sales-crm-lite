@@ -41,7 +41,8 @@ class ActivityModuleTest extends TestCase
         $this->assertTrue(ActivityModel::isValidAction(ActivityModel::ACTION_DEACTIVATED));
         $this->assertTrue(ActivityModel::isValidAction(ActivityModel::ACTION_ACTIVATED));
         $this->assertTrue(ActivityModel::isValidAction(ActivityModel::ACTION_VIEWED_REPORT));
-        $this->assertFalse(ActivityModel::isValidAction('exported'));
+        $this->assertTrue(ActivityModel::isValidAction(ActivityModel::ACTION_EXPORTED));
+        $this->assertFalse(ActivityModel::isValidAction('archived'));
     }
 
     public function testMetadataDoesNotRequireSensitiveFields(): void
