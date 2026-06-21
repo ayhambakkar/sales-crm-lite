@@ -1,92 +1,156 @@
 # Sales CRM Lite
 
-> A lightweight, professional Customer Relationship Management system built from scratch with PHP 8, MySQL, and Tailwind CSS — no framework, no bloat.
+> A lightweight, single-tenant CRM for small sales teams, built with custom PHP 8.2 MVC, MySQL, and Tailwind CSS.
 
 ![PHP](https://img.shields.io/badge/PHP-8.2+-777BB4?style=flat-square&logo=php&logoColor=white)
 ![MySQL](https://img.shields.io/badge/MySQL-8.0+-4479A1?style=flat-square&logo=mysql&logoColor=white)
 ![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-3.x-06B6D4?style=flat-square&logo=tailwindcss&logoColor=white)
-![License](https://img.shields.io/badge/license-MIT-green?style=flat-square)
-![Status](https://img.shields.io/badge/status-In_Development-orange?style=flat-square)
+![Status](https://img.shields.io/badge/status-MVP-green?style=flat-square)
 
----
+## Project Overview
 
-## Overview
+Sales CRM Lite is a portfolio-grade CRM application that demonstrates how to build a secure, maintainable PHP application without a framework. It uses a front controller, custom router, middleware, controllers, PDO models, PHP views, and Tailwind CSS.
 
-Sales CRM Lite is a single-tenant CRM designed for small sales teams. It covers the full sales workflow: capturing leads, tracking pipeline stages, converting prospects into customers, and managing follow-up tasks — all within a clean, responsive interface.
-
-The project is intentionally built **without a PHP framework** to demonstrate a deep understanding of how MVC architecture, routing, session management, and security work under the hood. It follows the same patterns used in Laravel, Symfony, and CodeIgniter — just implemented by hand.
-
----
-
-## Features
-
-### Phase 1 — MVP (Current)
-
-- **Authentication** — Secure login/logout with bcrypt password hashing and session management
-- **Role-based access control** — Admin and Sales Rep roles with scoped data visibility
-- **Dashboard** — KPI cards, overdue follow-up alerts, and recent leads overview
-- **Lead Management** — Full CRUD with pipeline status tracking (New → Contacted → Qualified → Won/Lost)
-- **Lead Conversion** — One-click conversion from Won lead to Customer with field pre-population
-- **Customer Management** — Full CRUD with linked follow-up history
-- **Follow-Up Tasks** — Scheduled tasks tied to leads or customers with overdue detection
-- **User Management** — Admin can create, edit, deactivate, and manage team accounts
-
-### Phase 2 — In Roadmap
-
-- **Activity Log** — Immutable audit trail of all CRM interactions
-- **Reporting** — Conversion rates, leads-by-status charts, follow-up completion rates
-- **Pagination** — All list views paginated above 20 records
-- **Dark mode** — Optional theme toggle
-- **CSV Export** — Export leads and customer reports
-
----
+The current MVP supports authentication, admin user management, leads, customers, lead-to-customer conversion, follow-up tasks, and a scoped CRM dashboard. It is intentionally single-tenant for now.
 
 ## Tech Stack
 
-| Layer | Technology | Why |
-|---|---|---|
-| **Backend** | PHP 8.2+ | No framework — demonstrates core language mastery |
-| **Database** | MySQL 8 / MariaDB 10.6+ | Relational data with full FK and transaction support |
-| **CSS** | Tailwind CSS 3 | Utility-first, responsive-by-default, no custom CSS needed |
-| **JavaScript** | Vanilla JS (ES2020+) | No framework overhead; raw DOM and Fetch API |
-| **Architecture** | Custom MVC | Front controller, PSR-4 autoloading, PDO data layer |
-| **Security** | PHP sessions + CSRF tokens | bcrypt, prepared statements, XSS escaping, CSP headers |
-| **Dev tooling** | Composer, npm (Tailwind CLI) | Standard PHP dependency management |
+| Layer | Technology |
+| --- | --- |
+| Backend | PHP 8.2+ |
+| Architecture | Custom MVC with PSR-4 autoloading |
+| Database | MySQL 8.0+ or MariaDB 10.6+ |
+| Data access | PDO prepared statements |
+| Frontend | PHP views with Tailwind CSS |
+| Tooling | Composer, PHPUnit, npm, Tailwind CLI |
 
----
+## Implemented Phase 1 Features
+
+- Authentication with login, logout, bcrypt password hashes, CSRF protection, session regeneration, and hardened logout.
+- Login throttling with database-backed failed login tracking.
+- Admin-only user management with create, edit, activate, deactivate, and password reset actions.
+- Role-based access for `admin` and `sales_rep` users.
+- Leads module with CRUD, search, filters, sorting, pagination, assignment scoping, status, priority, and estimated value.
+- Lead-to-customer conversion with transaction-safe customer creation and conversion tracking.
+- Customers module with CRUD, search, filters, sorting, pagination, and assignment scoping.
+- Follow-Up Tasks module for leads and customers with open, done, cancelled, overdue, priority, due date, search, filters, sorting, and pagination.
+- Dashboard KPIs for leads, customers, pipeline value, conversion rate, overdue follow-ups, due-today follow-ups, recent records, and upcoming tasks.
+- Tailwind-based SaaS UI foundation with app layout, guest layout, navigation, tables, forms, flash messages, badges, and pagination.
+- PHPUnit coverage for the foundation, auth hardening, user management, leads, customers, conversion, dashboard, and follow-ups.
+
+## Role-Based Access
+
+- Admin users can manage users and can view, assign, edit, delete, and convert all CRM records.
+- Sales reps can view and manage only leads, customers, and follow-ups assigned to them.
+- The Users navigation item is visible only to admins.
+- Record scoping is enforced in controller/model logic, not only in the UI.
+
+## Phase 2 Roadmap
+
+- Activity log and audit trail.
+- Reporting views and charts.
+- CSV export for CRM lists and reports.
+- More advanced permissions and team workflows.
+- Production deployment hardening and hosted demo.
+
+The app does not currently include SaaS tenants, activity logging, reporting, CSV export, or dark mode.
 
 ## Prerequisites
 
 - PHP 8.2 or higher
-- MySQL 8.0+ or MariaDB 10.6+
 - Composer
-- Node.js + npm
+- MySQL 8.0+ or MariaDB 10.6+
+- Node.js and npm
 
----
+## Fresh-Install Checklist
 
-## Quick Start
+1. `composer install`
+2. `npm install`
+3. `cp .env.example .env`
+4. Run migrations in order.
+5. Run seeders.
+6. `npm run build:css`
+7. `composer test`
+8. `php -S localhost:8000 -t public`
 
-### 1. Clone the repository
+## Installation
 
-```bash
-git clone https://github.com/your-username/sales-crm-lite.git
-cd sales-crm-lite
-```
-
-### 2. Install PHP dependencies
+Install PHP and frontend dependencies:
 
 ```bash
 composer install
+npm install
 ```
 
-### 3. Install frontend dependencies and build CSS
+Create your local environment file:
 
 ```bash
-npm install
+cp .env.example .env
+```
+
+Set the database values in `.env`:
+
+```env
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=sales_crm
+DB_USERNAME=root
+DB_PASSWORD=
+```
+
+Add `-p` to the MySQL commands below if your local MySQL root user requires a password.
+
+## Database Setup
+
+Create the database:
+
+```bash
+mysql -u root -e "CREATE DATABASE IF NOT EXISTS sales_crm CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
+```
+
+Run migrations in order:
+
+```bash
+mysql -u root sales_crm < database/migrations/001_create_users_table.sql
+mysql -u root sales_crm < database/migrations/002_create_failed_logins_table.sql
+mysql -u root sales_crm < database/migrations/003_create_leads_table.sql
+mysql -u root sales_crm < database/migrations/004_create_customers_table.sql
+mysql -u root sales_crm < database/migrations/005_add_lead_conversion_fields.sql
+mysql -u root sales_crm < database/migrations/006_create_follow_ups_table.sql
+```
+
+Run the local admin seeder:
+
+```bash
+mysql -u root sales_crm < database/seeders/001_seed_admin_user.sql
+```
+
+Load demo CRM data:
+
+```bash
+mysql -u root sales_crm < database/seeders/002_seed_demo_crm_data.sql
+```
+
+## Demo Login Credentials
+
+Both demo accounts use the local development password `password`.
+
+| Role | Email | Password |
+| --- | --- | --- |
+| Admin | admin@example.com | password |
+| Sales Rep | sales@example.com | password |
+
+Change these credentials before using the app outside local development.
+
+## CSS Build
+
+Build the production stylesheet:
+
+```bash
 npm run build:css
 ```
 
-During UI development, run the Tailwind watcher:
+Run the Tailwind watcher while editing UI files:
 
 ```bash
 npm run dev:css
@@ -94,206 +158,63 @@ npm run dev:css
 
 The compiled stylesheet is written to `public/assets/css/app.css`.
 
-### 4. Configure the environment
+## Local Server
+
+Start the PHP development server:
 
 ```bash
-cp .env.example .env
+php -S localhost:8000 -t public
 ```
 
-Open `.env` and set your database credentials:
+Open [http://localhost:8000](http://localhost:8000).
 
-```env
-APP_NAME="Sales CRM Lite"
-APP_ENV=development
-APP_URL=http://localhost:8000
+## Tests
 
-DB_HOST=127.0.0.1
-DB_PORT=3306
-DB_NAME=sales_crm
-DB_USER=your_db_user
-DB_PASS=your_db_password
-```
-
-### 5. Set up the database
+Run the test suite:
 
 ```bash
-# Create the database
-mysql -u root -p -e "CREATE DATABASE sales_crm CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
-
-# Run the schema
-mysql -u root -p sales_crm < database/migrations/schema.sql
-
-# Load demo data (optional)
-mysql -u root -p sales_crm < database/seeders/seed.sql
-```
-
-### 6. Start the development server
-
-```bash
-php -S localhost:8000 -t public/
-```
-
-Open [http://localhost:8000](http://localhost:8000) in your browser.
-
-### Default Login Credentials (seed data)
-
-| Name | Email | Password | Role |
-|---|---|---|---|
-| Admin User | admin@example.com | password | Admin |
-| Alice Sales | alice@example.com | password | Sales Rep |
-| Bob Sales | bob@example.com | password | Sales Rep |
-
-> Change all passwords immediately after first login.
-
----
-
-## Project Structure
-
-```
-sales-crm-lite/
-│
-├── public/                     ← Web root (the ONLY directory exposed to the web)
-│   ├── index.php               ← Front controller — all requests enter here
-│   └── assets/
-│       ├── css/                ← Compiled Tailwind CSS
-│       ├── js/                 ← Vanilla JavaScript modules
-│       └── images/
-│
-├── src/                        ← Application source (not web-accessible)
-│   ├── Core/                   ← Framework kernel (Router, Session, Auth, helpers)
-│   ├── Controllers/            ← One controller per module
-│   ├── Models/                 ← PDO-based data access layer
-│   ├── Views/                  ← PHP template files
-│   │   ├── layouts/            ← Shared page shells (app, guest)
-│   │   ├── partials/           ← Reusable UI components (flash, pagination)
-│   │   ├── dashboard/
-│   │   ├── leads/
-│   │   ├── customers/
-│   │   ├── follow-ups/
-│   │   ├── users/
-│   │   ├── auth/
-│   │   └── errors/
-│   ├── Services/               ← Business logic layer (LeadService, etc.)
-│   └── Middleware/             ← AuthMiddleware, CsrfMiddleware
-│
-├── config/                     ← App, database, and route configuration
-├── database/
-│   ├── migrations/             ← SQL schema files
-│   └── seeders/                ← Demo data scripts
-├── storage/
-│   ├── logs/                   ← Application error logs (git-ignored)
-│   └── uploads/                ← File uploads (git-ignored)
-├── tests/
-│   ├── Unit/
-│   └── Integration/
-├── docs/                       ← Full architecture documentation
-├── .env.example                ← Environment template
-├── composer.json
-└── README.md
-```
-
----
-
-## Architecture
-
-The application uses a **custom MVC implementation** with a front controller pattern:
-
-```
-Request → public/index.php → Router → Middleware → Controller → Model → View → Response
-```
-
-Key design decisions:
-
-- **No framework** — Router, session management, CSRF protection, and templating are all hand-rolled
-- **PSR-4 autoloading** — all classes follow `App\Layer\ClassName` namespacing
-- **PDO + prepared statements** — zero raw SQL string interpolation; no ORM
-- **Role-scoped queries** — every data query includes a user-ownership clause; no IDOR possible
-- **Defense in depth** — auth enforced at router level AND at record level in every model
-
-Full architecture documentation: [`docs/system-architecture.md`](docs/system-architecture.md)  
-Security concept: [`docs/security-concept.md`](docs/security-concept.md)  
-Database design + ERD: [`docs/database-design.md`](docs/database-design.md)
-
----
-
-## Security Highlights
-
-| Threat | Mitigation |
-|---|---|
-| SQL Injection | PDO prepared statements, `ATTR_EMULATE_PREPARES = false` |
-| XSS | `htmlspecialchars()` on all output via `e()` helper + CSP header |
-| CSRF | Synchronizer token pattern with `hash_equals()` comparison |
-| IDOR | User-scoped WHERE clauses in every single-record query |
-| Session Fixation | `session_regenerate_id(true)` on every login |
-| Password Cracking | bcrypt with cost factor 12 |
-| Clickjacking | `X-Frame-Options: DENY` header |
-
----
-
-## Documentation
-
-All architectural decisions are documented in the `docs/` folder:
-
-| Document | Description |
-|---|---|
-| [`project-overview.md`](docs/project-overview.md) | Vision, goals, and key design decisions |
-| [`requirements.md`](docs/requirements.md) | Functional and non-functional requirements with IDs |
-| [`user-stories.md`](docs/user-stories.md) | 25 user stories with acceptance criteria |
-| [`database-design.md`](docs/database-design.md) | ERD, table definitions, indexes, foreign keys |
-| [`system-architecture.md`](docs/system-architecture.md) | MVC layers, request lifecycle, component design |
-| [`security-concept.md`](docs/security-concept.md) | Auth flow, session hardening, OWASP mitigations |
-| [`project-structure.md`](docs/project-structure.md) | Directory tree, naming conventions, web server config |
-| [`roadmap.md`](docs/roadmap.md) | Milestones, effort estimates, branching strategy |
-
----
-
-## Roadmap
-
-```
-Phase 1 — MVP (In Progress)       Phase 2 — Depth (Planned)
-──────────────────────────        ──────────────────────────
-[✓] Project architecture          [ ] Activities audit log
-[ ] Authentication & sessions     [ ] Reporting & charts
-[ ] User management (Admin)       [ ] Pagination
-[ ] Lead pipeline (full CRUD)     [ ] CSV export
-[ ] Customer management           [ ] Dark mode toggle
-[ ] Follow-up tasks               [ ] Live demo deployment
-[ ] Dashboard with KPIs
-```
-
-See the full milestone breakdown: [`docs/roadmap.md`](docs/roadmap.md)
-
----
-
-## Running Tests
-
-```bash
-# All tests
 composer test
+```
 
-# Unit tests only
+Additional scripts are available:
+
+```bash
 composer test:unit
-
-# Integration tests only
 composer test:integration
 ```
 
----
+## Project Structure
 
-## About This Project
+```text
+sales-crm-lite/
+|-- config/                 Route configuration
+|-- database/
+|   |-- migrations/         Ordered SQL migrations
+|   `-- seeders/            Local and demo seed data
+|-- public/                 Web root and compiled assets
+|-- resources/css/          Tailwind source CSS
+|-- src/
+|   |-- Controllers/        MVC controllers
+|   |-- Core/               Router, controller base, model base, auth, session, helpers
+|   |-- Middleware/         Auth and CSRF middleware
+|   |-- Models/             PDO model classes
+|   `-- Views/              Layouts, partials, and module views
+|-- storage/logs/           App logs
+|-- tests/                  PHPUnit tests
+|-- composer.json
+|-- package.json
+`-- tailwind.config.js
+```
 
-This project was built as a **GitHub portfolio piece** to demonstrate senior-level full-stack PHP skills without relying on a framework. The focus areas are:
+## Security Notes
 
-- **Architecture** — MVC from scratch, clean separation of concerns, no god classes
-- **Security** — OWASP Top 10 mitigations implemented explicitly, not by convention
-- **Database design** — normalized schema, proper FK constraints, index strategy
-- **Code quality** — PSR-12 compliant, no framework magic, readable and maintainable
-- **Documentation** — full ADR-style docs before any code — the way real teams work
-
-If you're reviewing this for a job application or technical assessment, the `docs/` folder is the best place to start. It explains not just *what* was built, but *why* every decision was made.
-
----
+- Passwords are stored with bcrypt hashes.
+- SQL access uses PDO prepared statements.
+- POST routes use CSRF middleware.
+- Login throttling locks repeated failed attempts for 15 minutes.
+- Authenticated sessions are regenerated on login and destroyed on logout.
+- Production-safe logging writes to `storage/logs/app.log`.
 
 ## License
 
-This project is licensed under the [MIT License](LICENSE).
+This project declares the MIT license in `composer.json`.
