@@ -274,7 +274,7 @@ sales-crm-lite/
 
 ## Release And Version
 
-Current portfolio release: `v1.0.0`.
+Current portfolio release: `v0.2.1-deployment-docs`.
 
 Included in this release:
 
